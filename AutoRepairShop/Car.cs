@@ -48,22 +48,19 @@ namespace AutoRepairShop
 
         internal bool ReplacementPart(Detail newDetail) 
         {
-            Detail replaceableDetail = null;
-
-            foreach(Detail detail in _details)
+            for (int i = 0; i < _details.Count; i++)
             {
-                if(newDetail.Type == detail.Type)
+                if(newDetail.Type == _details[i].Type)
                 {
-                    replaceableDetail = detail;
-                    break;
+                    bool isBroken = _details[i].IsBroken;
+
+                    _details[i] = newDetail;
+
+                    return isBroken;
                 }
             }
 
-            bool isBroked = replaceableDetail.IsBroken;
-
-            replaceableDetail = newDetail;
-
-            return isBroked;
+            return false;
         }
 
         internal bool CarIsBroken()
