@@ -37,16 +37,6 @@ namespace AutoRepairShop
             return temp;
         }
 
-        private bool DetailIsBroken(Detail detail)
-        {
-            if(detail.IsBroken == true)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         internal List<Detail> GetAllDetails()
         {
             List<Detail> temp = new List<Detail>();
@@ -56,20 +46,24 @@ namespace AutoRepairShop
             return temp;
         }
 
-        internal bool ReplacementPart(DetailType type) 
+        internal bool ReplacementPart(Detail newDetail) 
         {
-            Detail replaceablePart = null;
+            Detail replaceableDetail = null;
 
             foreach(Detail detail in _details)
             {
-                if(type == detail.Type)
+                if(newDetail.Type == detail.Type)
                 {
-                    replaceablePart = detail;
+                    replaceableDetail = detail;
                     break;
                 }
             }
 
-            return DetailIsBroken(replaceablePart);
+            bool isBroked = replaceableDetail.IsBroken;
+
+            replaceableDetail = newDetail;
+
+            return isBroked;
         }
 
         internal bool CarIsBroken()
