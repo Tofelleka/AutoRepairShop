@@ -10,13 +10,10 @@ namespace AutoRepairShop
 
         Dictionary<DetailType, List<Detail>> _details;
 
-        private int _quantityDetails;
-
         internal Warehouse()
         {
             _detailsStore = new DetailsStore();
             _details = FillDetails();
-            _quantityDetails = _details.Count;
         }
 
         private Dictionary<DetailType, List<Detail>> FillDetails()
@@ -39,6 +36,7 @@ namespace AutoRepairShop
                 }
 
                 details[type] = tempDetails;
+                tempDetails.Clear();
             }
 
             return details;
@@ -56,6 +54,18 @@ namespace AutoRepairShop
             }
         }
 
+        internal int GetTotalQuantity()
+        {
+            int count = 0;
+
+            for (int i = 0; i < _details.Count; i++)
+            {
+                count += _details[(DetailType)i].Count;
+            }
+
+            return count;
+        }
+
         internal Detail SendPartToGarage(int userInput)
         {
             if (Utils.ContainsDetailType(userInput))
@@ -64,9 +74,9 @@ namespace AutoRepairShop
 
                 if (_details[type].Count != 0)
                 {
-                    Detail detail = _details[type][_details.Count - 1];
+                    Detail detail = _details[type][_details[type].Count - 1];
 
-                    _details[type].RemoveAt(_details.Count - 1);
+                    _details[type].RemoveAt(_details[type].Count - 1);
 
                     return detail;
                 }

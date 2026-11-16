@@ -33,7 +33,7 @@ namespace AutoRepairShop
 
         internal Detail SellDetail(int userInput)
         {
-            if (Utils.ContainsDetailType(userInput));
+            if (Utils.ContainsDetailType(userInput))
             {
                 foreach (Detail detail in _storeCatalog)
                 {
