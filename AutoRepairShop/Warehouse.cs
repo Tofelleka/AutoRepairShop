@@ -58,9 +58,12 @@ namespace AutoRepairShop
         {
             int count = 0;
 
-            for (int i = 0; i < _details.Count; i++)
+           foreach(var pair in _details)
             {
-                count += _details[(DetailType)i].Count;
+                if(pair.Key != DetailType.Exit)
+                {
+                    count += pair.Value.Count;
+                }
             }
 
             return count;

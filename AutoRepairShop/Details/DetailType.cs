@@ -2,6 +2,7 @@
 {
     internal enum DetailType
     {
+        Exit = 0,
         FuelPump = 1,
         SparkPlugs = 2,
         Starter = 3,
