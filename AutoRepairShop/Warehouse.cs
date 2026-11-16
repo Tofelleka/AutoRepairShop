@@ -4,7 +4,7 @@ namespace AutoRepairShop
 {
     internal class Warehouse
     {
-        private const int WerehouseCapacity = 60;
+        internal const int WarehouseCapacity = 60;
 
         DetailsStore _detailsStore;
 

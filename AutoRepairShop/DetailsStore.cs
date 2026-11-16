@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
@@ -35,11 +34,14 @@ namespace AutoRepairShop
         {
             if (Utils.ContainsDetailType(userInput))
             {
-                foreach (Detail detail in _storeCatalog)
+                if ((DetailType)userInput != DetailType.Exit)
                 {
-                    if ((DetailType)userInput == detail.Type)
+                    foreach (Detail detail in _storeCatalog)
                     {
-                        return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);
+                        if ((DetailType)userInput == detail.Type)
+                        {
+                            return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);
+                        }
                     }
                 }
             }
