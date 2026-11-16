@@ -33,13 +33,13 @@ namespace AutoRepairShop
 
         internal Detail SellDetail(int userInput)
         {
-            if(Enum.IsDefined(typeof(Detail), userInput))
+            if (Utils.ContainsDetailType(userInput));
             {
-                foreach(Detail detail in _storeCatalog)
+                foreach (Detail detail in _storeCatalog)
                 {
                     if ((DetailType)userInput == detail.Type)
                     {
-                        return new Detail(detail.Type,detail.Name,detail.Price,detail.ReplacementCost);
+                        return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);
                     }
                 }
             }

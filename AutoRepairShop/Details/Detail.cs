@@ -2,25 +2,14 @@
 {
     internal class Detail
     {
-        private double _chanceBreakdown = 0.3;
-
-        public Detail(DetailType type, string name, int price, int replacementCost)
-        {
-            Type = type;
-            Name = name;
-            Price = price;
-            ReplacementCost = replacementCost;
-            IsBroken = Utils.GetRandomBool(_chanceBreakdown);
-        }
-
-        public Detail(DetailType type, string description, string name, int price, int replacementCost) : this(type, name, price, replacementCost)
+        public Detail(DetailType type, string description, string name, int price, int replacementCost)
         {
             Type = type;
             Description = description;
             Name = name;
             Price = price;
             ReplacementCost = replacementCost;
-            IsBroken = Utils.GetRandomBool(_chanceBreakdown);
+            IsBroken = false;
         }
 
         public DetailType Type { get; }
@@ -28,6 +17,11 @@
         public string Description { get; }
         public int Price { get; }
         public int ReplacementCost { get; }
-        public bool IsBroken { get; }
+        public bool IsBroken { get; private set; }
+
+        internal void BrokeDetail()
+        {
+            IsBroken = true;
+        }
     }
 }

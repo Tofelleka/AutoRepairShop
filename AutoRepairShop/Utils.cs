@@ -37,5 +37,15 @@ namespace AutoRepairShop
         {
             return _random.NextDouble() <= chance;
         }
+
+        public static bool ContainsDetailType(int userInput)
+        {
+            if (Enum.IsDefined(typeof(DetailType), userInput))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

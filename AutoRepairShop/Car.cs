@@ -4,6 +4,8 @@ namespace AutoRepairShop
 {
     internal class Car
     {
+        private double _chanceBreakdown = 0.3;
+
         private List<string> _names = new List<string>()
         {
             {"ВАЗ - 2108" },
@@ -31,7 +33,14 @@ namespace AutoRepairShop
 
             foreach(var data in DetailsCatalog.GetDetailsCatalog())
             {
-                temp.Add(new Detail(data.type, data.name,data.price,data.replacementCost));
+               Detail detail = new Detail(data.type, data.description, data.name,data.price,data.replacementCost);
+
+                if (Utils.GetRandomBool(_chanceBreakdown))
+                {
+                    detail.BrokeDetail();
+                }
+
+                temp.Add(detail);
             }
 
             return temp;
