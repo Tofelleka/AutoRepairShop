@@ -43,7 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoRepairManager.cs" />
     <Compile Include="Car.cs" />
+    <Compile Include="CashRegister.cs" />
     <Compile Include="DetailsStore.cs" />
     <Compile Include="Details\Detail.cs" />
     <Compile Include="Details\DetailsCatalog.cs" />

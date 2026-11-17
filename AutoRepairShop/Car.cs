@@ -84,5 +84,18 @@ namespace AutoRepairShop
 
             return false;
         }
+
+        internal bool DetailIsBroken(DetailType type)
+        {
+            foreach(Detail detail in _details)
+            {
+                if(detail.Type == type)
+                {
+                    return detail.IsBroken;
+                }
+            }
+
+            return false;
+        }
     }
 }

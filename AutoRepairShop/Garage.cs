@@ -51,10 +51,27 @@ namespace AutoRepairShop
             }
         }
 
-        private void ReplacementPart(List<Detail> brokenDetails, Detail newDetail, int numberInCollection)
+        private void ReplacePart(List<Detail> brokenDetails, Detail newDetail, Detail replacementDetail, Car car)
         {
-            brokenDetails[numberInCollection] = newDetail;
-            brokenDetails.RemoveAt(numberInCollection);
+            car.ReplacementPart(newDetail);
+
+            if (replacementDetail.IsBroken)
+            {
+                brokenDetails.Remove(replacementDetail);
+            }
+        }
+
+        private Detail FindDetailInCar(Car car, DetailType type)
+        {
+            foreach (Detail detail in car.GetAllDetails())
+            {
+                if (detail.Type == type)
+                {
+                    return detail;
+                }
+            }
+
+            return null;
         }
 
         internal void AddCars()
@@ -79,7 +96,9 @@ namespace AutoRepairShop
 
                     if (Utils.ContainsDetailType(userInput))
                     {
-                        if ((DetailType)userInput == DetailType.Exit)
+                        DetailType type = (DetailType)userInput;
+
+                        if (type == DetailType.Exit)
                         {
                             income -= FineForDetail * brokenDetails.Count;
 
@@ -88,13 +107,15 @@ namespace AutoRepairShop
 
                         Detail newDetail = _warehouse.SendPartToGarage(userInput);
 
-                        for (int i = brokenDetails.Count - 1; i >= 0; i++)
+                        if (newDetail != null)
                         {
-                            if ((DetailType)userInput == brokenDetails[i].Type)
+                            Detail replacementDetail = FindDetailInCar(car, type);
+
+                            if (replacementDetail != null)
                             {
-                                if (brokenDetails[i].IsBroken)
+                                if (replacementDetail.IsBroken)
                                 {
-                                    ReplacementPart(brokenDetails, newDetail, i);
+                                    ReplacePart(brokenDetails, newDetail, replacementDetail, car);
 
                                     income += newDetail.Price + newDetail.ReplacementCost;
 
@@ -102,7 +123,7 @@ namespace AutoRepairShop
                                 }
                                 else
                                 {
-                                    ReplacementPart(brokenDetails, newDetail, i);
+                                    ReplacePart(brokenDetails, newDetail, replacementDetail, car);
                                 }
                             }
                         }
