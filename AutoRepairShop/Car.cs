@@ -1,41 +1,57 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
     internal class Car
     {
-        private double _chanceBreakdown = 0.3;
+        private const double DefaultBreakdownChance = 0.3;
 
-        private List<string> _names = new List<string>()
+        private DetailsStore _detailsStore;
+
+        private List<string> _names = new List<string>
         {
-            {"ВАЗ - 2108" },
-            {"ВАЗ - 2109" },
-            {"ВАЗ - 21091" },
-            {"ВАЗ - 21093" },
-            {"ВАЗ - 21093i" },
-            {"ВАЗ - 2113" },
-            {"ВАЗ - 2114" },
-            {"ВАЗ - 2115" }
+            "ВАЗ - 2108" ,
+            "ВАЗ - 2109" ,
+            "ВАЗ - 21091" ,
+            "ВАЗ - 21093" ,
+            "ВАЗ - 21093i" ,
+            "ВАЗ - 2113" ,
+            "ВАЗ - 2114" ,
+            "ВАЗ - 2115"
         };
+
         private List<Detail> _details;
 
-        public Car()
+        public Car(DetailsStore detailsStore)
         {
+            if(detailsStore == null)
+            {
+                throw new ArgumentNullException(nameof(detailsStore),"Пустой аргумент");
+            }
+
+            _detailsStore = detailsStore;
             _details = FillDetails();
-            Name = _names[Utils.GetRandomNumber(0,_names.Count)];
+            Name = _names[Utils.GetRandomNumber(0, _names.Count)];
         }
 
         public string Name { get; }
 
         private List<Detail> FillDetails()
         {
-            List<Detail> temp = new List<Detail>();
+            var temp = new List<Detail>();
+            var catalog = _detailsStore.GetCatalog();
 
-            foreach(var data in DetailsCatalog.GetDetailsCatalog())
+            if (catalog == null || catalog.Count == 0)
             {
-               Detail detail = new Detail(data.type, data.description, data.name,data.price,data.replacementCost);
+                return temp;
+            } 
 
-                if (Utils.GetRandomBool(_chanceBreakdown))
+            foreach (var data in catalog)
+            {
+                var detail = new Detail(data.Value.Type, data.Value.Description, data.Value.Name, data.Value.Price,data.Value.ReplacementCost);
+
+                if (Utils.GetRandomBool(DefaultBreakdownChance))
                 {
                     detail.BrokeDetail();
                 }
@@ -48,18 +64,14 @@ namespace AutoRepairShop
 
         internal List<Detail> GetAllDetails()
         {
-            List<Detail> temp = new List<Detail>();
-
-            temp.AddRange(_details);
-
-            return temp;
+            return new List<Detail>(_details);
         }
 
-        internal bool ReplacementPart(Detail newDetail) 
+        internal bool ReplacementPart(Detail newDetail)
         {
             for (int i = 0; i < _details.Count; i++)
             {
-                if(newDetail.Type == _details[i].Type)
+                if (newDetail.Type == _details[i].Type)
                 {
                     bool isBroken = _details[i].IsBroken;
 
@@ -74,7 +86,7 @@ namespace AutoRepairShop
 
         internal bool CarIsBroken()
         {
-            foreach(Detail detail in _details)
+            foreach (Detail detail in _details)
             {
                 if (detail.IsBroken)
                 {
@@ -85,11 +97,11 @@ namespace AutoRepairShop
             return false;
         }
 
-        internal bool DetailIsBroken(DetailType type)
+        internal bool IsDetailBroken(DetailType type)
         {
-            foreach(Detail detail in _details)
+            foreach (Detail detail in _details)
             {
-                if(detail.Type == type)
+                if (detail.Type == type)
                 {
                     return detail.IsBroken;
                 }

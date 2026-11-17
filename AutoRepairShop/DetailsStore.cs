@@ -43,5 +43,17 @@ namespace AutoRepairShop
 
             return null;
         }
+
+        internal Dictionary<DetailType, Detail> GetCatalog()
+        {
+            var catalog = new Dictionary<DetailType, Detail>(_storeCatalog.Count);
+
+            foreach(var pair in _storeCatalog)
+            {
+                catalog[pair.Key] = pair.Value;
+            }
+
+            return catalog;
+        }
     }
 }
