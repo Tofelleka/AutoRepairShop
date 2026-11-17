@@ -1,48 +1,43 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
     internal class DetailsStore
     {
-        private List<Detail> _storeCatalog;
+        private Dictionary<DetailType, Detail> _storeCatalog;
 
         internal DetailsStore()
         {
             _storeCatalog = FillCatalog();
         }
 
-        private List<Detail> FillCatalog()
+        private Dictionary<DetailType, Detail> FillCatalog()
         {
-            List<(DetailType type, string name, int price, int replacementCost, string description)> tempData = DetailsCatalog.GetDetailsCatalog();
+            var catalogData = DetailsCatalog.GetDetailsCatalog();
 
-            List<Detail> details = new List<Detail>();
-
-            foreach (var data in tempData)
+            if (catalogData == null)
             {
-                details.Add(new Detail(data.type, data.description, data.name, data.price, data.replacementCost));
+                throw new InvalidOperationException("Каталог деталей не был загружен.");
+            }
+
+            var details = new Dictionary<DetailType, Detail>();
+
+            foreach (var data in catalogData)
+            {
+                details[data.type] = new Detail(data.type, data.description, data.name, data.price, data.replacementCost);
             }
 
             return details;
         }
 
-        internal int GetCountCatalogItems()
+        internal Detail SellDetail(DetailType type)
         {
-            return _storeCatalog.Count;
-        }
-
-        internal Detail SellDetail(int userInput)
-        {
-            if (Utils.ContainsDetailType(userInput))
+            if (type != DetailType.Exit)
             {
-                if ((DetailType)userInput != DetailType.Exit)
+                if (_storeCatalog.TryGetValue(type, out Detail detail))
                 {
-                    foreach (Detail detail in _storeCatalog)
-                    {
-                        if ((DetailType)userInput == detail.Type)
-                        {
-                            return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);
-                        }
-                    }
+                    return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);
                 }
             }
 

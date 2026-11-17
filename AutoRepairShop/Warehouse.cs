@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
@@ -6,83 +7,70 @@ namespace AutoRepairShop
     {
         internal const int WarehouseCapacity = 60;
 
-        DetailsStore _detailsStore;
+        private readonly DetailsStore _detailsStore;
 
-        Dictionary<DetailType, List<Detail>> _details;
+        private readonly Dictionary<DetailType, List<Detail>> _details;
 
-        internal Warehouse()
+        internal Warehouse(DetailsStore detailsStore)
         {
-            _detailsStore = new DetailsStore();
+            if (detailsStore == null)
+            {
+                throw new ArgumentNullException(nameof(detailsStore), "Магазин деталей не может быть пустым.");
+            }
+
+            _detailsStore = detailsStore;
             _details = FillDetails();
         }
 
+        public int TotalQuantity { get; private set; }
+
         private Dictionary<DetailType, List<Detail>> FillDetails()
         {
-            Dictionary<DetailType, List<Detail>> details = new Dictionary<DetailType, List<Detail>>();
-            
-            int initialQuantityDetails = 2;
+            var details = new Dictionary<DetailType, List<Detail>>(Enum.GetValues(typeof(DetailType)).Length);
 
-            List<Detail> tempDetails = new List<Detail>();
+            const int initialQuantityDetails = 2;
 
-            for (int i = 1; i <= _detailsStore.GetCountCatalogItems(); i++)
+            foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
             {
-                DetailType type = (DetailType)i;
-
-                details.Add(type, new List<Detail>());
-
-                for (int j = 0; j < initialQuantityDetails; j++)
+                if (type == DetailType.Exit)
                 {
-                    tempDetails.Add(_detailsStore.SellDetail((int)type));
+                    continue;
+                }
+
+                var tempDetails = new List<Detail>(initialQuantityDetails);
+
+                for (int i = 0; i < tempDetails.Count; i++)
+                {
+                    Detail newDetail = _detailsStore.SellDetail(type);
+
+                    if (TotalQuantity < WarehouseCapacity && newDetail != null)
+                    {
+                        tempDetails.Add(newDetail);
+
+                        TotalQuantity++;
+                    }
+                    else break;
                 }
 
                 details[type] = tempDetails;
-                tempDetails.Clear();
             }
 
             return details;
         }
 
-        private void AddDetail()
+        internal Detail SendPartToGarage(DetailType type)
         {
-            int userInput = Utils.ReadNumber();
-
-            Detail detail = _detailsStore.SellDetail(userInput);
-
-            if(detail != null)
+            if (_details.TryGetValue(type, out List<Detail> detailOfType) && detailOfType.Count > 0)
             {
-                _details[(DetailType)userInput].Add(detail);
-            }
-        }
+                int lastIndex = detailOfType.Count - 1;
 
-        internal int GetTotalQuantity()
-        {
-            int count = 0;
+                Detail detail = detailOfType[lastIndex];
 
-           foreach(var pair in _details)
-            {
-                if(pair.Key != DetailType.Exit)
-                {
-                    count += pair.Value.Count;
-                }
-            }
+                detailOfType.RemoveAt(lastIndex);
 
-            return count;
-        }
+                TotalQuantity--;
 
-        internal Detail SendPartToGarage(int userInput)
-        {
-            if (Utils.ContainsDetailType(userInput))
-            {
-                DetailType type = (DetailType)userInput;
-
-                if (_details[type].Count != 0)
-                {
-                    Detail detail = _details[type][_details[type].Count - 1];
-
-                    _details[type].RemoveAt(_details[type].Count - 1);
-
-                    return detail;
-                }
+                return detail;
             }
 
             return null;

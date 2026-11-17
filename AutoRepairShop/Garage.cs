@@ -119,7 +119,7 @@ namespace AutoRepairShop
 
                                     income += newDetail.Price + newDetail.ReplacementCost;
 
-                                    break;
+                                    continue;
                                 }
                                 else
                                 {
