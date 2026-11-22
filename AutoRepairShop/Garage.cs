@@ -15,8 +15,13 @@ namespace AutoRepairShop
             _warehouse = warehouse;
         }
 
-        private List<Detail> DiagnoseFaultyParts(Car car)
+        internal List<Detail> DiagnoseFaultyParts(Car car)
         {
+            if (car == null)
+            {
+                throw new ArgumentNullException(nameof(car));
+            }
+
             List<Detail> brokenDetails = new List<Detail>();
 
             foreach (Detail detail in car.GetAllDetails())
@@ -53,61 +58,48 @@ namespace AutoRepairShop
             return null;
         }
 
-        internal RepairReport RepairNextCar(Car car)
+        internal DetailRepairReport RepairDetail(DetailType type, Car car)
         {
-            if (car == null)
+            var brokenDetails = DiagnoseFaultyParts(car);
+
+            var newDetail = _warehouse.SendPartToGarage(type);
+
+            decimal result = 0m;
+
+            var replacementDetail = FindDetailInCar(car, type);
+
+            if (newDetail != null)
             {
-                throw new ArgumentNullException(nameof(car));
-            }
-
-            decimal revenueFromRepair = 0m;
-
-            List<Detail> brokenDetails = DiagnoseFaultyParts(car);
-
-            while (car.CarIsBroken())
-            {
-                int userInput = Utils.ReadNumber();
-
-                if (Utils.ContainsDetailType(userInput))
+                if (replacementDetail != null)
                 {
-                    DetailType type = (DetailType)userInput;
-
-                    if (type == DetailType.Exit)
+                    if (replacementDetail.IsBroken)
                     {
-                        return new RepairReport(revenueFromRepair, FineForDetail * brokenDetails.Count);
+                        ReplacePart(brokenDetails, newDetail, replacementDetail, car);
+
+                        result = newDetail.Price + newDetail.ReplacementCost;
+
+                        return new DetailRepairReport(RepairOutcome.ReplacedBroken, result, replacementDetail);
                     }
-
-                    Detail newDetail = _warehouse.SendPartToGarage(type);
-
-                    if (newDetail != null)
+                    else
                     {
-                        Detail replacementDetail = FindDetailInCar(car, type);
+                        ReplacePart(brokenDetails, newDetail, replacementDetail, car);
 
-                        if (replacementDetail != null)
-                        {
-                            if (replacementDetail.IsBroken)
-                            {
-                                ReplacePart(brokenDetails, newDetail, replacementDetail, car);
-
-                                revenueFromRepair += newDetail.Price + newDetail.ReplacementCost;
-
-                                continue;
-                            }
-                            else
-                            {
-                                ReplacePart(brokenDetails, newDetail, replacementDetail, car);
-                            }
-                        }
+                        return new DetailRepairReport(RepairOutcome.ReplacedHealthe, result, replacementDetail);
                     }
                 }
             }
 
-            return new RepairReport(revenueFromRepair, 0m);
+            return new DetailRepairReport(RepairOutcome.NoDetailInStock, result, replacementDetail);
         }
 
-        internal RepairReport RefuseCar()
+        internal RepairReport RefuseRepairs()
         {
             return new RepairReport(0m, FineForCar);
+        }
+
+        internal RepairReport RefuseFurtherRepairs(decimal revenueFromRepair, Car car)
+        {
+            return new RepairReport(revenueFromRepair, FineForDetail * DiagnoseFaultyParts(car).Count);
         }
     }
 }

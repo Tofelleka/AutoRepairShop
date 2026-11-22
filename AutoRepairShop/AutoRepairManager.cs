@@ -1,4 +1,6 @@
-﻿namespace AutoRepairShop
+﻿using System.Collections.Generic;
+
+namespace AutoRepairShop
 {
     internal class AutoRepairManager
     {
@@ -39,11 +41,11 @@
 
                     if (Utils.ReadNumber() == CommandRepair)
                     {
-                        report = _garage.RepairNextCar(car);
+                        report = SuperviseRepairNextCar(car);
                     }
                     else
                     {
-                        report = _garage.RefuseCar();
+                        report = _garage.RefuseRepairs();
                     }
 
                     _cashRegister.Apply(report);
@@ -53,6 +55,53 @@
 
                 day++;
             }
+        }
+
+        private RepairReport SuperviseRepairNextCar(Car car)
+        {
+            var brokenDetails = _garage.DiagnoseFaultyParts(car);
+
+            decimal revenueFromRepair = 0m;
+
+            while (car.CarIsBroken())
+            {
+                int userInput = Utils.ReadNumber();
+
+                if (Utils.ContainsDetailType(userInput))
+                {
+                    DetailType type = (DetailType)userInput;
+
+                    if(type == DetailType.Exit)
+                    {
+                        return _garage.RefuseFurtherRepairs(revenueFromRepair, car);
+                    }
+
+                    var report = _garage.RepairDetail(type, car);
+
+                    revenueFromRepair += ReadRepairDetailReport(report);
+                }
+            }
+
+            return new RepairReport(revenueFromRepair, 0m);
+        }
+
+        private decimal ReadRepairDetailReport(DetailRepairReport report)
+        {
+            decimal result = report.Charge;
+
+            switch (report.Outcome)
+            {
+                case RepairOutcome.NoDetailInStock:
+                    break;
+
+                case RepairOutcome.ReplacedHealthe:
+                    break;
+
+                case RepairOutcome.ReplacedBroken:
+                    break;
+            }
+
+            return result;
         }
     }
 }

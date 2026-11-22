@@ -67,21 +67,15 @@ namespace AutoRepairShop
             return new List<Detail>(_details);
         }
 
-        internal bool ReplacementPart(Detail newDetail)
+        internal void ReplacementPart(Detail newDetail)
         {
             for (int i = Utils.FirstIndex; i < _details.Count; i++)
             {
                 if (newDetail.Type == _details[i].Type)
                 {
-                    bool isBroken = _details[i].IsBroken;
-
                     _details[i] = newDetail;
-
-                    return isBroken;
                 }
             }
-
-            return false;
         }
 
         internal bool CarIsBroken()
