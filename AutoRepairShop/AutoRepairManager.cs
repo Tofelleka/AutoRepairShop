@@ -4,7 +4,6 @@
     {
         private const int CommandRepair = 0;
         private const int CommandContinue = 1;
-        private const int CommandExit = 0;
 
         private readonly DetailsStore _detailStore;
         private readonly CarsQueue _carsQueue;
@@ -15,10 +14,10 @@
         internal AutoRepairManager()
         {
             _detailStore = new DetailsStore();
+            _cashRegister = new CashRegister();
             _carsQueue = new CarsQueue(_detailStore);
             _warehouse = new Warehouse(_detailStore);
             _garage = new Garage(_warehouse);
-            _cashRegister = new CashRegister(_garage);
         }
 
         public void SimulateWorkDay()
@@ -36,18 +35,18 @@
                 {
                     Car car = _carsQueue.DequeueCar();
 
-                    int income;
+                    RepairReport report;
 
                     if (Utils.ReadNumber() == CommandRepair)
                     {
-                        income = _garage.RepairNextCar(car);
+                        report = _garage.RepairNextCar(car);
                     }
                     else
                     {
-                        income = _garage.RefuseCar();
+                        report = _garage.RefuseCar();
                     }
 
-                    _cashRegister.CalculateProfitFromRepair(income);
+                    _cashRegister.Apply(report);
                 }
 
                 isWork = Utils.ReadNumber() == CommandContinue;

@@ -2,19 +2,16 @@
 {
     internal class CashRegister
     {
-        Garage _garage;
-
-        internal CashRegister(Garage garage)
+        internal CashRegister()
         {
-            _garage = garage;
             Money = 10000m;
         }
 
-        public decimal Money { get; private set; }
+        internal decimal Money { get; private set; }
 
-        internal void CalculateProfitFromRepair(int income)
+        internal void Apply(RepairReport report)
         {
-            Money += income;
+            Money += report.Total;
         }
     }
 }

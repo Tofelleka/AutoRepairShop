@@ -54,6 +54,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CarsQueue.cs" />
+    <Compile Include="RepairReport.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Warehouse.cs" />
   </ItemGroup>
