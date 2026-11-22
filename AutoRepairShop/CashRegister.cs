@@ -7,10 +7,10 @@
         internal CashRegister(Garage garage)
         {
             _garage = garage;
-            Money = 10000;
+            Money = 10000m;
         }
 
-        public int Money { get; private set; }
+        public decimal Money { get; private set; }
 
         internal void CalculateProfitFromRepair(int income)
         {

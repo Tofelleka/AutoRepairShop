@@ -5,8 +5,8 @@ namespace AutoRepairShop
 {
     internal class Garage
     {
-        private const int FineForCar = 1000;
-        private const int FineForDetail = 100;
+        private const decimal FineForCar = 1000m;
+        private const decimal FineForDetail = 100m;
 
         private readonly Warehouse _warehouse;
 
@@ -58,9 +58,9 @@ namespace AutoRepairShop
             return null;
         }
 
-        internal int RepairNextCar(Car car)
+        internal decimal RepairNextCar(Car car)
         {
-            int income = 0;
+            decimal income = 0m;
 
             if (car != null)
             {

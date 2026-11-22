@@ -2,7 +2,7 @@
 {
     internal class Detail
     {
-        public Detail(DetailType type, string description, string name, int price, int replacementCost)
+        public Detail(DetailType type, string description, string name, decimal price, decimal replacementCost)
         {
             Type = type;
             Description = description;
@@ -15,8 +15,8 @@
         public DetailType Type { get; }
         public string Name { get; }
         public string Description { get; }
-        public int Price { get; }
-        public int ReplacementCost { get; }
+        public decimal Price { get; }
+        public decimal ReplacementCost { get; }
         public bool IsBroken { get; private set; }
 
         internal void BrokeDetail()
