@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
+using System;
 
 namespace AutoRepairShop
 {
     internal class CarsQueue
     {
-        private const int CommandRepair = 0;
         private const int MinCarsPerDay = 1;
         private const int MaxCarsPerDay = 5;
 
@@ -14,31 +14,37 @@ namespace AutoRepairShop
 
         internal CarsQueue(DetailsStore detailsStore)
         {
+            if (detailsStore == null)
+            {
+                throw new InvalidOperationException(nameof(detailsStore));
+            }
+
+            _carsQueue = new Queue<Car>();
             _detailsStore = detailsStore;
+        }
+
+        internal int Count { get; private set; }
+        internal bool HasCars
+        {
+            get
+            {
+                return (Count > 0);
+            }
         }
 
         internal void AddCars()
         {
-            for (int i = 0; i < Utils.GetRandomNumber(MinCarsPerDay, MaxCarsPerDay + 1); i++)
+            int carsCount = Utils.GetRandomNumber(MinCarsPerDay, MaxCarsPerDay + 1);
+
+            for (int i = Utils.FirstIndex; i < carsCount; i++)
             {
                 _carsQueue.Enqueue(new Car(_detailsStore));
             }
         }
 
-        private Car GetNextCar()
+        internal Car DequeueCar()
         {
-            Car car = _carsQueue.Dequeue();
-
-            int userInput = Utils.ReadNumber();
-
-            if (userInput == CommandRepair)
-            {
-                return car;
-            }
-            else
-            {
-                return null;
-            }
+            return _carsQueue.Dequeue();
         }
     }
 }
