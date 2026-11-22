@@ -15,7 +15,7 @@ namespace AutoRepairShop
         {
             if (detailsStore == null)
             {
-                throw new ArgumentNullException(nameof(detailsStore), "Магазин деталей не может быть пустым.");
+                throw new ArgumentNullException(nameof(detailsStore));
             }
 
             _detailsStore = detailsStore;
@@ -39,7 +39,7 @@ namespace AutoRepairShop
 
                 var tempDetails = new List<Detail>(initialQuantityDetails);
 
-                for (int i = 0; i < tempDetails.Count; i++)
+                for (int i = 0; i < initialQuantityDetails; i++)
                 {
                     Detail newDetail = _detailsStore.SellDetail(type);
 

@@ -7,7 +7,7 @@ namespace AutoRepairShop
     {
         private const double DefaultBreakdownChance = 0.3;
 
-        private DetailsStore _detailsStore;
+        private readonly DetailsStore _detailStore;
 
         private List<string> _names = new List<string>
         {
@@ -23,16 +23,16 @@ namespace AutoRepairShop
 
         private List<Detail> _details;
 
-        public Car(DetailsStore detailsStore)
+        public Car(DetailsStore detailStore)
         {
-            if(detailsStore == null)
-            {
-                throw new ArgumentNullException(nameof(detailsStore),"Пустой аргумент");
+            if (detailStore == null)
+            { 
+                throw new ArgumentNullException(nameof(detailStore));
             }
 
-            _detailsStore = detailsStore;
+            _detailStore = detailStore;
             _details = FillDetails();
-            Name = _names[Utils.GetRandomNumber(0, _names.Count)];
+            Name = _names[Utils.GetRandomNumber(Utils.FirstIndex, _names.Count)];
         }
 
         public string Name { get; }
@@ -40,16 +40,16 @@ namespace AutoRepairShop
         private List<Detail> FillDetails()
         {
             var temp = new List<Detail>();
-            var catalog = _detailsStore.GetCatalog();
+            var catalog = _detailStore.GetCatalog();
 
-            if (catalog == null || catalog.Count == 0)
+            if (catalog == null || catalog.Count == Utils.FirstIndex)
             {
-                return temp;
-            } 
+                throw new InvalidOperationException("Каталог деталей пуст");
+            }
 
             foreach (var data in catalog)
             {
-                var detail = new Detail(data.Value.Type, data.Value.Description, data.Value.Name, data.Value.Price,data.Value.ReplacementCost);
+                var detail = new Detail(data.Value.Type, data.Value.Description, data.Value.Name, data.Value.Price, data.Value.ReplacementCost);
 
                 if (Utils.GetRandomBool(DefaultBreakdownChance))
                 {
@@ -69,7 +69,7 @@ namespace AutoRepairShop
 
         internal bool ReplacementPart(Detail newDetail)
         {
-            for (int i = 0; i < _details.Count; i++)
+            for (int i = Utils.FirstIndex; i < _details.Count; i++)
             {
                 if (newDetail.Type == _details[i].Type)
                 {

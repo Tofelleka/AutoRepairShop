@@ -4,6 +4,8 @@ namespace AutoRepairShop
 {
     internal static class Utils
     {
+        public const int FirstIndex = 0;
+
         private static Random _random = new Random();
 
         public static int ReadNumber()

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
@@ -9,26 +8,7 @@ namespace AutoRepairShop
 
         internal DetailsStore()
         {
-            _storeCatalog = FillCatalog();
-        }
-
-        private Dictionary<DetailType, Detail> FillCatalog()
-        {
-            var catalogData = DetailsCatalog.GetDetailsCatalog();
-
-            if (catalogData == null)
-            {
-                throw new InvalidOperationException("Каталог деталей не был загружен.");
-            }
-
-            var details = new Dictionary<DetailType, Detail>();
-
-            foreach (var data in catalogData)
-            {
-                details[data.type] = new Detail(data.type, data.description, data.name, data.price, data.replacementCost);
-            }
-
-            return details;
+            _storeCatalog = new Dictionary<DetailType, Detail>(DetailsCatalog.GetDetailsCatalog());
         }
 
         internal Detail SellDetail(DetailType type)
@@ -46,14 +26,7 @@ namespace AutoRepairShop
 
         internal Dictionary<DetailType, Detail> GetCatalog()
         {
-            var catalog = new Dictionary<DetailType, Detail>(_storeCatalog.Count);
-
-            foreach(var pair in _storeCatalog)
-            {
-                catalog[pair.Key] = pair.Value;
-            }
-
-            return catalog;
+            return new Dictionary<DetailType, Detail>(_storeCatalog);
         }
     }
 }
