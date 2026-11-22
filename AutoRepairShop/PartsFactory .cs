@@ -2,11 +2,11 @@
 
 namespace AutoRepairShop
 {
-    internal class DetailsStore
+    internal class PartsFactory
     {
         private Dictionary<DetailType, Detail> _storeCatalog;
 
-        internal DetailsStore()
+        internal PartsFactory()
         {
             _storeCatalog = new Dictionary<DetailType, Detail>(DetailsCatalog.GetDetailsCatalog());
         }

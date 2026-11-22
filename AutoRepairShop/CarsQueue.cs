@@ -8,22 +8,28 @@ namespace AutoRepairShop
         private const int MinCarsPerDay = 1;
         private const int MaxCarsPerDay = 5;
 
-        private readonly DetailsStore _detailsStore;
+        private readonly PartsFactory _detailsStore;
 
         private Queue<Car> _carsQueue;
 
-        internal CarsQueue(DetailsStore detailsStore)
+        internal CarsQueue(PartsFactory detailsStore)
         {
             if (detailsStore == null)
             {
-                throw new InvalidOperationException(nameof(detailsStore));
+                throw new ArgumentNullException(nameof(detailsStore));
             }
 
             _carsQueue = new Queue<Car>();
             _detailsStore = detailsStore;
         }
 
-        internal int Count { get; private set; }
+        internal int Count
+        {
+            get
+            {
+                return _carsQueue.Count;
+            }
+        }
         internal bool HasCars
         {
             get

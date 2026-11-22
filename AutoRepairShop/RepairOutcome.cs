@@ -3,7 +3,7 @@
     internal enum RepairOutcome
     {
         ReplacedBroken = 0,
-        ReplacedHealthe = 1,
+        ReplacedHealthy = 1,
         NoDetailInStock = 2
     }
 }

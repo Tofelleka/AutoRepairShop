@@ -7,11 +7,11 @@ namespace AutoRepairShop
     {
         internal const int WarehouseCapacity = 60;
 
-        private readonly DetailsStore _detailsStore;
+        private readonly PartsFactory _detailsStore;
 
         private readonly Dictionary<DetailType, List<Detail>> _details;
 
-        internal Warehouse(DetailsStore detailsStore)
+        internal Warehouse(PartsFactory detailsStore)
         {
             if (detailsStore == null)
             {

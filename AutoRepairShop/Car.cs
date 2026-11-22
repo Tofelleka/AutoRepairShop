@@ -7,7 +7,7 @@ namespace AutoRepairShop
     {
         private const double DefaultBreakdownChance = 0.3;
 
-        private readonly DetailsStore _detailStore;
+        private readonly PartsFactory _detailStore;
 
         private List<string> _names = new List<string>
         {
@@ -23,7 +23,7 @@ namespace AutoRepairShop
 
         private List<Detail> _details;
 
-        public Car(DetailsStore detailStore)
+        public Car(PartsFactory detailStore)
         {
             if (detailStore == null)
             { 
@@ -85,19 +85,6 @@ namespace AutoRepairShop
                 if (detail.IsBroken)
                 {
                     return true;
-                }
-            }
-
-            return false;
-        }
-
-        internal bool IsDetailBroken(DetailType type)
-        {
-            foreach (Detail detail in _details)
-            {
-                if (detail.Type == type)
-                {
-                    return detail.IsBroken;
                 }
             }
 

@@ -35,14 +35,9 @@ namespace AutoRepairShop
             return brokenDetails;
         }
 
-        private void ReplacePart(List<Detail> brokenDetails, Detail newDetail, Detail replacementDetail, Car car)
+        private void ReplacePart(Detail newDetail, Detail replacementDetail, Car car)
         {
             car.ReplacementPart(newDetail);
-
-            if (replacementDetail.IsBroken)
-            {
-                brokenDetails.Remove(replacementDetail);
-            }
         }
 
         private Detail FindDetailInCar(Car car, DetailType type)
@@ -60,8 +55,6 @@ namespace AutoRepairShop
 
         internal DetailRepairReport RepairDetail(DetailType type, Car car)
         {
-            var brokenDetails = DiagnoseFaultyParts(car);
-
             var newDetail = _warehouse.SendPartToGarage(type);
 
             decimal result = 0m;
@@ -74,7 +67,7 @@ namespace AutoRepairShop
                 {
                     if (replacementDetail.IsBroken)
                     {
-                        ReplacePart(brokenDetails, newDetail, replacementDetail, car);
+                        ReplacePart(newDetail, replacementDetail, car);
 
                         result = newDetail.Price + newDetail.ReplacementCost;
 
@@ -82,9 +75,9 @@ namespace AutoRepairShop
                     }
                     else
                     {
-                        ReplacePart(brokenDetails, newDetail, replacementDetail, car);
+                        ReplacePart(newDetail, replacementDetail, car);
 
-                        return new DetailRepairReport(RepairOutcome.ReplacedHealthe, result, replacementDetail);
+                        return new DetailRepairReport(RepairOutcome.ReplacedHealthy, result, replacementDetail);
                     }
                 }
             }

@@ -7,7 +7,7 @@ namespace AutoRepairShop
         private const int CommandRepair = 0;
         private const int CommandContinue = 1;
 
-        private readonly DetailsStore _detailStore;
+        private readonly PartsFactory _detailStore;
         private readonly CarsQueue _carsQueue;
         private readonly Warehouse _warehouse;
         private readonly Garage _garage;
@@ -15,7 +15,7 @@ namespace AutoRepairShop
 
         internal AutoRepairManager()
         {
-            _detailStore = new DetailsStore();
+            _detailStore = new PartsFactory();
             _cashRegister = new CashRegister();
             _carsQueue = new CarsQueue(_detailStore);
             _warehouse = new Warehouse(_detailStore);
@@ -94,7 +94,7 @@ namespace AutoRepairShop
                 case RepairOutcome.NoDetailInStock:
                     break;
 
-                case RepairOutcome.ReplacedHealthe:
+                case RepairOutcome.ReplacedHealthy:
                     break;
 
                 case RepairOutcome.ReplacedBroken:
