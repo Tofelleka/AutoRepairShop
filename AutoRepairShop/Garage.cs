@@ -8,7 +8,12 @@ namespace AutoRepairShop
         private const int FineForCar = 1000;
         private const int FineForDetail = 100;
 
-        private Warehouse _warehouse;
+        private readonly Warehouse _warehouse;
+
+        internal Garage(Warehouse warehouse)
+        {
+            _warehouse = warehouse;
+        }
 
         private List<Detail> DiagnoseFaultyParts(Car car)
         {

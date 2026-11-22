@@ -1,37 +1,24 @@
-﻿using System.Collections.Generic;
-
-namespace AutoRepairShop
+﻿namespace AutoRepairShop
 {
     internal class AutoRepairManager
     {
-        private const int CommandRepair = 0;
-        private const int MinCarsPerDay = 1;
-        private const int MaxCarsPerDay = 5;
 
-        private Queue<Car> _carsQueue;
+        private readonly DetailsStore _detailStore;
+        private readonly CarsQueue _carsQueue;
+        private readonly Warehouse _warehouse;
+        private readonly Garage _garage;
 
-        internal void AddCars()
+        internal AutoRepairManager()
         {
-            for (int i = 0; i < Utils.GetRandomNumber(MinCarsPerDay, MaxCarsPerDay + 1); i++)
-            {
-                _carsQueue.Enqueue(new Car());
-            }
+            _detailStore = new DetailsStore();
+            _carsQueue = new CarsQueue(_detailStore);
+            _warehouse = new Warehouse(_detailStore);
+            _garage = new Garage(_warehouse);
         }
 
-        private Car GetNextCar()
+        public void SimulateWorkDay()
         {
-            Car car = _carsQueue.Dequeue();
 
-            int userInput = Utils.ReadNumber();
-
-            if (userInput == CommandRepair)
-            {
-                return car;
-            }
-            else
-            {
-                return null;
-            }
         }
     }
 }
