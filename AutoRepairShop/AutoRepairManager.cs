@@ -68,17 +68,20 @@ namespace AutoRepairShop
             {
                 int userInput = Utils.ReadNumber();
 
-                if (Utils.ContainsDetailType(userInput))
+                if (userInput == CommandExit)
                 {
-                    DetailType type = (DetailType)userInput;
+                    return _garage.RefuseFurtherRepairs(revenueFromRepair, car);
+                }
+
+                int detailNummber = userInput - 1;
+
+                if (Utils.ContainsDetailType(detailNummber))
+                {
+                    DetailType type = (DetailType)detailNummber;
 
                     var report = _garage.RepairDetail(type, car);
 
                     revenueFromRepair += ReadRepairDetailReport(report);
-                }
-                else if(userInput == CommandExit)
-                {
-                    return _garage.RefuseFurtherRepairs(revenueFromRepair, car);
                 }
             }
 

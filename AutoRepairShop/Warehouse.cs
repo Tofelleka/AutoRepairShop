@@ -26,11 +26,6 @@ namespace AutoRepairShop
         {
             get
             {
-                if(_details == null)
-                {
-                    return 0;
-                }
-
                 int count = 0;
 
                 foreach(var pair in _details)
@@ -56,7 +51,7 @@ namespace AutoRepairShop
                 {
                     Detail newDetail = _partsFactory.CreateNewDetail(type);
 
-                    if (TotalQuantity < WarehouseCapacity && newDetail != null)
+                    if (newDetail != null)
                     {
                         tempDetails.Add(newDetail);
                     }

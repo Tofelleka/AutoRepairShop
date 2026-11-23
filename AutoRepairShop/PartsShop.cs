@@ -22,15 +22,17 @@
                     return new PurchaseReport(PurchaseOutcome.NotEnoughMoney, detail);
                 }
 
-                if (_warehouse.TryAdd() == false)
+                if (_warehouse.TryAdd(detail) == false)
                 {
                     return new PurchaseReport(PurchaseOutcome.WarehouseIsFull, detail);
                 }
+
+                _cashRegister.TryPay(detail.Price);
+
+                return new PurchaseReport(PurchaseOutcome.Bought, detail);
             }
 
-            _cashRegister.TryPay(detail.Price);
-
-            return new PurchaseReport(PurchaseOutcome.Bought, detail);
+            return new PurchaseReport(PurchaseOutcome.UnknownDetail, null);
         }
     }
 }

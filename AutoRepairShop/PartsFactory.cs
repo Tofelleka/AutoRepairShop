@@ -13,9 +13,9 @@ namespace AutoRepairShop
 
         internal Detail CreateNewDetail(DetailType type)
         {
-                Detail detail = _storeCatalog[type];
+            Detail detail = _storeCatalog[type];
 
-                return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);
+            return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);
         }
 
         internal Dictionary<DetailType, Detail> GetCatalog()
