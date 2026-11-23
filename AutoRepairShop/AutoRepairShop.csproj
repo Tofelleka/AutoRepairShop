@@ -61,8 +61,9 @@
     <Compile Include="Parts\PurchaseReport.cs" />
     <Compile Include="Repairs\RepairOutcome.cs" />
     <Compile Include="Repairs\RepairReport.cs" />
-    <Compile Include="Common\Utils.cs" />
     <Compile Include="Parts\Warehouse.cs" />
+    <Compile Include="UI\IRandomSource.cs" />
+    <Compile Include="UI\SystemRandomSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

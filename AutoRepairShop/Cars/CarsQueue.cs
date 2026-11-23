@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System;
+using AutoRepairShop.UI;
 
 namespace AutoRepairShop
 {
@@ -8,19 +9,25 @@ namespace AutoRepairShop
         private const int MinCarsPerDay = 1;
         private const int MaxCarsPerDay = 5;
 
-        private readonly PartsFactory _detailsStore;
+        private readonly IRandomSource _random;
+        private readonly Dictionary<DetailType, Detail> _catalog;
+        private readonly Queue<Car> _carsQueue;
 
-        private Queue<Car> _carsQueue;
-
-        internal CarsQueue(PartsFactory detailsStore)
+        internal CarsQueue(PartsFactory detailsStore, IRandomSource random)
         {
             if (detailsStore == null)
             {
                 throw new ArgumentNullException(nameof(detailsStore));
             }
 
+            if (random == null)
+            {
+                throw new ArgumentNullException(nameof(random));
+            }
+
+            _random = random;
             _carsQueue = new Queue<Car>();
-            _detailsStore = detailsStore;
+            _catalog = detailsStore.GetCatalog();
         }
 
         internal int Count
@@ -40,11 +47,11 @@ namespace AutoRepairShop
 
         internal void AddCars()
         {
-            int carsCount = Utils.GetRandomNumber(MinCarsPerDay, MaxCarsPerDay + 1);
+            int carsCount = _random.Next(MinCarsPerDay, MaxCarsPerDay + 1);
 
-            for (int i = Utils.FirstIndex; i < carsCount; i++)
+            for (int i = 0; i < carsCount; i++)
             {
-                _carsQueue.Enqueue(new Car(_detailsStore));
+                _carsQueue.Enqueue(new Car(_catalog, _random));
             }
         }
 

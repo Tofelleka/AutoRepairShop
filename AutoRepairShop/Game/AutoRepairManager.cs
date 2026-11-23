@@ -22,9 +22,10 @@ namespace AutoRepairShop
             }
 
             _illustrator = illustrator;
+            IRandomSource random = new SystemRandomSource();
             _partsFactory = new PartsFactory();
             _cashRegister = new CashRegister();
-            _carsQueue = new CarsQueue(_partsFactory);
+            _carsQueue = new CarsQueue(_partsFactory, random);
             _warehouse = new Warehouse(_partsFactory);
             _garage = new Garage(_warehouse);
             _partsShop = new PartsShop(_partsFactory, _warehouse, _cashRegister);
