@@ -43,28 +43,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutoRepairManager.cs" />
-    <Compile Include="Car.cs" />
-    <Compile Include="CashRegister.cs" />
-    <Compile Include="DetailRepairReport.cs" />
-    <Compile Include="PartsFactory.cs" />
-    <Compile Include="Details\Detail.cs" />
-    <Compile Include="Details\DetailsCatalog.cs" />
-    <Compile Include="Details\DetailType.cs" />
-    <Compile Include="Garage.cs" />
-    <Compile Include="PartsShop.cs" />
+    <Compile Include="Game\AutoRepairManager.cs" />
+    <Compile Include="Cars\Car.cs" />
+    <Compile Include="Finance\CashRegister.cs" />
+    <Compile Include="Repairs\DetailRepairReport.cs" />
+    <Compile Include="Parts\PartsFactory.cs" />
+    <Compile Include="Parts\Detail.cs" />
+    <Compile Include="Parts\DetailsCatalog.cs" />
+    <Compile Include="Parts\DetailType.cs" />
+    <Compile Include="Repairs\Garage.cs" />
+    <Compile Include="Parts\PartsShop.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CarsQueue.cs" />
-    <Compile Include="PurchaseOutcome.cs" />
-    <Compile Include="PurchaseReport.cs" />
-    <Compile Include="RepairOutcome.cs" />
-    <Compile Include="RepairReport.cs" />
-    <Compile Include="Utils.cs" />
-    <Compile Include="Warehouse.cs" />
+    <Compile Include="Cars\CarsQueue.cs" />
+    <Compile Include="Parts\PurchaseOutcome.cs" />
+    <Compile Include="Parts\PurchaseReport.cs" />
+    <Compile Include="Repairs\RepairOutcome.cs" />
+    <Compile Include="Repairs\RepairReport.cs" />
+    <Compile Include="Common\Utils.cs" />
+    <Compile Include="Parts\Warehouse.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

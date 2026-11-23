@@ -22,13 +22,13 @@ namespace AutoRepairShop
             _details = FillDetails();
         }
 
-        public int TotalQuantity 
+        public int TotalQuantity
         {
             get
             {
                 int count = 0;
 
-                foreach(var pair in _details)
+                foreach (var pair in _details)
                 {
                     count += pair.Value.Count;
                 }
@@ -51,11 +51,7 @@ namespace AutoRepairShop
                 {
                     Detail newDetail = _partsFactory.CreateNewDetail(type);
 
-                    if (newDetail != null)
-                    {
-                        tempDetails.Add(newDetail);
-                    }
-                    else break;
+                    tempDetails.Add(newDetail);
                 }
 
                 details[type] = tempDetails;
@@ -80,9 +76,14 @@ namespace AutoRepairShop
             return null;
         }
 
+        internal int GetQuantityDetail(DetailType type)
+        {
+            return _details[type].Count;
+        }
+
         internal bool TryAdd(Detail detail)
         {
-            if(TotalQuantity < WarehouseCapacity)
+            if (TotalQuantity < WarehouseCapacity)
             {
                 _details[detail.Type].Add(detail);
 

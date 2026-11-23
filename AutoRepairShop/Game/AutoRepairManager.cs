@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace AutoRepairShop
+﻿namespace AutoRepairShop
 {
     internal class AutoRepairManager
     {
