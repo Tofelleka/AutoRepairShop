@@ -10,12 +10,12 @@ namespace AutoRepairShop
 
         private readonly Warehouse _warehouse;
 
-        internal Garage(Warehouse warehouse)
+        public Garage(Warehouse warehouse)
         {
             _warehouse = warehouse;
         }
 
-        internal List<Detail> DiagnoseFaultyParts(Car car)
+        public List<Detail> DiagnoseFaultyParts(Car car)
         {
             if (car == null)
             {
@@ -53,7 +53,7 @@ namespace AutoRepairShop
             return null;
         }
 
-        internal DetailRepairReport RepairDetail(DetailType type, Car car)
+        public DetailRepairReport RepairDetail(DetailType type, Car car)
         {
             var newDetail = _warehouse.SendPartToGarage(type);
 
@@ -85,12 +85,12 @@ namespace AutoRepairShop
             return new DetailRepairReport(RepairOutcome.NoDetailInStock, result, replacementDetail);
         }
 
-        internal RepairReport RefuseRepairs()
+        public RepairReport RefuseRepairs()
         {
             return new RepairReport(0m, FineForCar);
         }
 
-        internal RepairReport RefuseFurtherRepairs(decimal revenueFromRepair, Car car)
+        public RepairReport RefuseFurtherRepairs(decimal revenueFromRepair, Car car)
         {
             return new RepairReport(revenueFromRepair, FineForDetail * DiagnoseFaultyParts(car).Count);
         }

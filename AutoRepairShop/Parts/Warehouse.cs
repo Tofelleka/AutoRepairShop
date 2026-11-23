@@ -5,13 +5,13 @@ namespace AutoRepairShop
 {
     internal class Warehouse
     {
-        internal const int WarehouseCapacity = 60;
+        public const int WarehouseCapacity = 60;
 
         private readonly PartsFactory _partsFactory;
 
         private readonly Dictionary<DetailType, List<Detail>> _details;
 
-        internal Warehouse(PartsFactory partsFactory)
+        public Warehouse(PartsFactory partsFactory)
         {
             if (partsFactory == null)
             {
@@ -60,7 +60,7 @@ namespace AutoRepairShop
             return details;
         }
 
-        internal Detail SendPartToGarage(DetailType type)
+        public Detail SendPartToGarage(DetailType type)
         {
             if (_details.TryGetValue(type, out List<Detail> detailOfType) && detailOfType.Count > 0)
             {
@@ -76,12 +76,12 @@ namespace AutoRepairShop
             return null;
         }
 
-        internal int GetQuantityDetail(DetailType type)
+        public int GetQuantityDetail(DetailType type)
         {
             return _details[type].Count;
         }
 
-        internal bool TryAdd(Detail detail)
+        public bool TryAdd(Detail detail)
         {
             if (TotalQuantity < WarehouseCapacity)
             {

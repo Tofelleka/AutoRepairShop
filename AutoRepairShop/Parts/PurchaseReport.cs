@@ -8,7 +8,7 @@
             Detail = detail;
         }
 
-        internal PurchaseOutcome Outcome { get; }
-        internal Detail Detail { get; }
+        public PurchaseOutcome Outcome { get; }
+        public Detail Detail { get; }
     }
 }

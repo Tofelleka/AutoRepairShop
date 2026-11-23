@@ -13,7 +13,7 @@ namespace AutoRepairShop
         private readonly Dictionary<DetailType, Detail> _catalog;
         private readonly Queue<Car> _carsQueue;
 
-        internal CarsQueue(PartsFactory partsFactory, IRandomSource random)
+        public CarsQueue(PartsFactory partsFactory, IRandomSource random)
         {
             if (partsFactory == null)
             {
@@ -30,14 +30,14 @@ namespace AutoRepairShop
             _catalog = partsFactory.GetCatalog();
         }
 
-        internal int Count
+        public int Count
         {
             get
             {
                 return _carsQueue.Count;
             }
         }
-        internal bool HasCars
+        public bool HasCars
         {
             get
             {
@@ -45,7 +45,7 @@ namespace AutoRepairShop
             }
         }
 
-        internal void AddCars()
+        public void AddCars()
         {
             int carsCount = _random.NextInclusive(MinCarsPerDay, MaxCarsPerDay);
 
@@ -55,7 +55,7 @@ namespace AutoRepairShop
             }
         }
 
-        internal Car DequeueCar()
+        public Car DequeueCar()
         {
             return _carsQueue.Dequeue();
         }

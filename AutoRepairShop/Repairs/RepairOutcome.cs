@@ -1,6 +1,6 @@
 ﻿namespace AutoRepairShop
 {
-    internal enum RepairOutcome
+    public enum RepairOutcome
     {
         ReplacedBroken = 0,
         ReplacedHealthy = 1,

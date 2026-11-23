@@ -2,7 +2,7 @@
 
 namespace AutoRepairShop.Common
 {
-    internal class SystemRandomSource : IRandomSource
+    public class SystemRandomSource : IRandomSource
     {
         private readonly Random _random = new Random();
 

@@ -2,15 +2,15 @@
 {
     internal class RepairReport
     {
-        internal RepairReport(decimal revenue, decimal fine)
+        public RepairReport(decimal revenue, decimal fine)
         {
             Revenue = revenue;
             Fine = fine;
         }
 
-        internal decimal Revenue { get; }
-        internal decimal Fine { get; }
-        internal decimal Total
+        public decimal Revenue { get; }
+        public decimal Fine { get; }
+        public decimal Total
         {
             get
             {

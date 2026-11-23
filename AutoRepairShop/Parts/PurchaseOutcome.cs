@@ -1,6 +1,6 @@
 ﻿namespace AutoRepairShop
 {
-    internal enum PurchaseOutcome
+    public enum PurchaseOutcome
     {
         Bought = 0,
         NotEnoughMoney = 1,

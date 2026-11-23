@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AutoRepairShop.UI
 {
-    internal enum DayCommand
+    public enum DayCommand
     {
         EndDay = 0,
         TakeCar = 1,
@@ -14,14 +14,14 @@ namespace AutoRepairShop.UI
 
     internal class StockItem
     {
-        internal StockItem(Detail detail, int quantity)
+        public StockItem(Detail detail, int quantity)
         {
             Detail = detail;
             Quantity = quantity;
         }
 
-        internal Detail Detail { get; }
-        internal int Quantity { get; }
+        public Detail Detail { get; }
+        public int Quantity { get; }
     }
 
     internal class Illustrator
@@ -29,7 +29,7 @@ namespace AutoRepairShop.UI
         private const int TextWidth = 70;
         private const string Currency = "руб.";
 
-        internal Illustrator()
+        public Illustrator()
         {
             try
             {
@@ -40,7 +40,7 @@ namespace AutoRepairShop.UI
             }
         }
 
-        internal void ShowBanner(decimal startMoney)
+        public void ShowBanner(decimal startMoney)
         {
             Clear();
 
@@ -57,7 +57,7 @@ namespace AutoRepairShop.UI
             Pause();
         }
 
-        internal DayCommand AskDayCommand(int day, decimal money, int carsInQueue)
+        public DayCommand AskDayCommand(int day, decimal money, int carsInQueue)
         {
             Clear();
 
@@ -94,7 +94,7 @@ namespace AutoRepairShop.UI
             }
         }
 
-        internal void ShowNoCars()
+        public void ShowNoCars()
         {
             Clear();
 
@@ -104,7 +104,7 @@ namespace AutoRepairShop.UI
             Bottom();
         }
 
-        internal bool AskRepairCar(Car car)
+        public bool AskRepairCar(Car car)
         {
             Clear();
 
@@ -135,7 +135,7 @@ namespace AutoRepairShop.UI
             }
         }
 
-        internal DetailType? AskDetailToRepair(Car car, IReadOnlyList<Detail> brokenDetails, IReadOnlyList<StockItem> stock)
+        public DetailType? AskDetailToRepair(Car car, IReadOnlyList<Detail> brokenDetails, IReadOnlyList<StockItem> stock)
         {
             if (brokenDetails == null || brokenDetails.Count == 0)
             {
@@ -154,7 +154,7 @@ namespace AutoRepairShop.UI
             return AskStockDetail(car, stock);
         }
 
-        internal void ShowDetailRepair(DetailRepairReport report)
+        public void ShowDetailRepair(DetailRepairReport report)
         {
             Top();
 
@@ -182,7 +182,7 @@ namespace AutoRepairShop.UI
             Bottom();
         }
 
-        internal void ShowRepairReport(RepairReport report, decimal money)
+        public void ShowRepairReport(RepairReport report, decimal money)
         {
             Top();
             Row("ИТОГ РЕМОНТА", ConsoleColor.Cyan);
@@ -198,7 +198,7 @@ namespace AutoRepairShop.UI
             Bottom();
         }
 
-        internal DetailType? AskPartToBuy(IReadOnlyList<StockItem> items, decimal money, int totalQuantity, int capacity)
+        public DetailType? AskPartToBuy(IReadOnlyList<StockItem> items, decimal money, int totalQuantity, int capacity)
         {
             while (true)
             {
@@ -248,7 +248,7 @@ namespace AutoRepairShop.UI
             }
         }
 
-        internal void ShowPurchase(PurchaseReport report, decimal money)
+        public void ShowPurchase(PurchaseReport report, decimal money)
         {
             Top();
 
@@ -277,7 +277,7 @@ namespace AutoRepairShop.UI
             Bottom();
         }
 
-        internal bool AskNextDay(int day, decimal money)
+        public bool AskNextDay(int day, decimal money)
         {
             Clear();
 
@@ -308,7 +308,7 @@ namespace AutoRepairShop.UI
             }
         }
 
-        internal void ShowFinal(decimal money, int days)
+        public void ShowFinal(decimal money, int days)
         {
             Clear();
 
@@ -327,7 +327,7 @@ namespace AutoRepairShop.UI
             Pause();
         }
 
-        internal void Pause()
+        public void Pause()
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Write("  Нажмите Enter, чтобы продолжить...");

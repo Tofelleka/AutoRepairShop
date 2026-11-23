@@ -4,7 +4,7 @@ namespace AutoRepairShop
 {
     internal static class DetailsCatalog
     {
-        internal static Dictionary<DetailType, Detail> GetDetailsCatalog()
+        public static Dictionary<DetailType, Detail> GetDetailsCatalog()
         {
             var _catalog = new Dictionary<DetailType, Detail>();
 

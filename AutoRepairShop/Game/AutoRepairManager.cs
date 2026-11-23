@@ -15,7 +15,7 @@ namespace AutoRepairShop
         private readonly Garage _garage;
         private readonly CashRegister _cashRegister;
 
-        internal AutoRepairManager(Illustrator illustrator)
+        public AutoRepairManager(Illustrator illustrator)
         {
             if (illustrator == null)
             {
@@ -30,48 +30,6 @@ namespace AutoRepairShop
             _warehouse = new Warehouse(_partsFactory);
             _garage = new Garage(_warehouse);
             _partsShop = new PartsShop(_partsFactory, _warehouse, _cashRegister);
-        }
-
-        internal void Run()
-        {
-            _illustrator.ShowBanner(_cashRegister.Money);
-
-            int day = 1;
-
-            bool isWork = true;
-
-            while (isWork)
-            {
-                _carsQueue.AddCars();
-
-                bool isDayOver = false;
-
-                while (isDayOver == false)
-                {
-                    DayCommand command = _illustrator.AskDayCommand(day, _cashRegister.Money, _carsQueue.Count);
-
-                    switch (command)
-                    {
-                        case DayCommand.TakeCar:
-                            TakeNextCar();
-                            break;
-
-                        case DayCommand.Shop:
-                            OpenShop();
-                            break;
-
-                        case DayCommand.EndDay:
-                            isDayOver = true;
-                            break;
-                    }
-                }
-
-                isWork = _illustrator.AskNextDay(day, _cashRegister.Money);
-
-                day++;
-            }
-
-            _illustrator.ShowFinal(_cashRegister.Money, day - 1);
         }
 
         private void TakeNextCar()
@@ -167,6 +125,48 @@ namespace AutoRepairShop
             }
 
             return items;
+        }
+
+        public void Run()
+        {
+            _illustrator.ShowBanner(_cashRegister.Money);
+
+            int day = 1;
+
+            bool isWork = true;
+
+            while (isWork)
+            {
+                _carsQueue.AddCars();
+
+                bool isDayOver = false;
+
+                while (isDayOver == false)
+                {
+                    DayCommand command = _illustrator.AskDayCommand(day, _cashRegister.Money, _carsQueue.Count);
+
+                    switch (command)
+                    {
+                        case DayCommand.TakeCar:
+                            TakeNextCar();
+                            break;
+
+                        case DayCommand.Shop:
+                            OpenShop();
+                            break;
+
+                        case DayCommand.EndDay:
+                            isDayOver = true;
+                            break;
+                    }
+                }
+
+                isWork = _illustrator.AskNextDay(day, _cashRegister.Money);
+
+                day++;
+            }
+
+            _illustrator.ShowFinal(_cashRegister.Money, day - 1);
         }
     }
 }

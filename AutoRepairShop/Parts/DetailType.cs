@@ -1,6 +1,6 @@
 ﻿namespace AutoRepairShop
 {
-    internal enum DetailType
+    public enum DetailType
     {
         FuelPump = 0,
         SparkPlugs = 1,

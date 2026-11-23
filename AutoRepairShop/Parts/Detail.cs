@@ -18,7 +18,6 @@ namespace AutoRepairShop
         public decimal Price { get; }
         public decimal ReplacementCost { get; }
         public bool IsBroken { get; private set; }
-
         public decimal Payout
         {
             get
@@ -27,7 +26,7 @@ namespace AutoRepairShop
             }
         }
 
-        internal void BrokeDetail()
+        public void BrokeDetail()
         {
             IsBroken = true;
         }

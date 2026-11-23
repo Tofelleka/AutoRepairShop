@@ -2,19 +2,19 @@
 {
     internal class CashRegister
     {
-        internal CashRegister()
+        public CashRegister()
         {
             Money = 10000m;
         }
 
-        internal decimal Money { get; private set; }
+        public decimal Money { get; private set; }
 
-        internal void Apply(RepairReport report)
+        public void Apply(RepairReport report)
         {
             Money += report.Total;
         }
 
-        internal bool TryPay(decimal price)
+        public bool TryPay(decimal price)
         {
             if(price <= Money)
             {
