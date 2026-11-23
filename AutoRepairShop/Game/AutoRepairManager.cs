@@ -101,8 +101,9 @@ namespace AutoRepairShop
             while (car.CarIsBroken())
             {
                 List<Detail> brokenDetails = _garage.DiagnoseFaultyParts(car);
+                List<StockItem> stock = BuildStockItems();
 
-                DetailType? type = _illustrator.AskDetailToRepair(brokenDetails);
+                DetailType? type = _illustrator.AskDetailToRepair(car, brokenDetails, stock);
 
                 if (type == null)
                 {
@@ -126,7 +127,7 @@ namespace AutoRepairShop
 
             while (isOpen)
             {
-                List<ShopItem> items = BuildShopItems();
+                List<StockItem> items = BuildStockItems();
 
                 DetailType? type = _illustrator.AskPartToBuy(
                     items,
@@ -148,9 +149,9 @@ namespace AutoRepairShop
             }
         }
 
-        private List<ShopItem> BuildShopItems()
+        private List<StockItem> BuildStockItems()
         {
-            var items = new List<ShopItem>();
+            var items = new List<StockItem>();
             var catalog = _partsFactory.GetCatalog();
 
             foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
@@ -159,7 +160,7 @@ namespace AutoRepairShop
 
                 if (catalog.TryGetValue(type, out detail))
                 {
-                    items.Add(new ShopItem(detail, _warehouse.GetQuantityDetail(type)));
+                    items.Add(new StockItem(detail, _warehouse.GetQuantityDetail(type)));
                 }
             }
 

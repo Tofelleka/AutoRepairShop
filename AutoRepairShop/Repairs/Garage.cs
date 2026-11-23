@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace AutoRepairShop
@@ -69,7 +69,7 @@ namespace AutoRepairShop
                     {
                         ReplacePart(newDetail, car);
 
-                        result = newDetail.Price + newDetail.ReplacementCost;
+                        result = newDetail.Payout;
 
                         return new DetailRepairReport(RepairOutcome.ReplacedBroken, result, replacementDetail);
                     }

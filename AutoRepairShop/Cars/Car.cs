@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace AutoRepairShop
@@ -7,60 +7,35 @@ namespace AutoRepairShop
     {
         private const double DefaultBreakdownChance = 0.3;
 
-        private readonly PartsFactory _detailStore;
-
-        private List<string> _names = new List<string>
+        private static readonly List<string> Names = new List<string>
         {
-            "ВАЗ - 2108" ,
-            "ВАЗ - 2109" ,
-            "ВАЗ - 21091" ,
-            "ВАЗ - 21093" ,
-            "ВАЗ - 21093i" ,
-            "ВАЗ - 2113" ,
-            "ВАЗ - 2114" ,
+            "ВАЗ - 2108",
+            "ВАЗ - 2109",
+            "ВАЗ - 21091",
+            "ВАЗ - 21093",
+            "ВАЗ - 21093i",
+            "ВАЗ - 2113",
+            "ВАЗ - 2114",
             "ВАЗ - 2115"
         };
 
-        private List<Detail> _details;
+        private readonly PartsFactory _partsFactory;
 
-        public Car(PartsFactory detailStore)
+        private readonly List<Detail> _details;
+
+        public Car(PartsFactory partsFactory)
         {
-            if (detailStore == null)
-            { 
-                throw new ArgumentNullException(nameof(detailStore));
+            if (partsFactory == null)
+            {
+                throw new ArgumentNullException(nameof(partsFactory));
             }
 
-            _detailStore = detailStore;
+            _partsFactory = partsFactory;
             _details = FillDetails();
-            Name = _names[Utils.GetRandomNumber(Utils.FirstIndex, _names.Count)];
+            Name = Names[Utils.GetRandomNumber(Utils.FirstIndex, Names.Count)];
         }
 
         public string Name { get; }
-
-        private List<Detail> FillDetails()
-        {
-            var temp = new List<Detail>();
-            var catalog = _detailStore.GetCatalog();
-
-            if (catalog == null || catalog.Count == Utils.FirstIndex)
-            {
-                throw new InvalidOperationException("Каталог деталей пуст");
-            }
-
-            foreach (var data in catalog)
-            {
-                var detail = new Detail(data.Value.Type, data.Value.Description, data.Value.Name, data.Value.Price, data.Value.ReplacementCost);
-
-                if (Utils.GetRandomBool(DefaultBreakdownChance))
-                {
-                    detail.BrokeDetail();
-                }
-
-                temp.Add(detail);
-            }
-
-            return temp;
-        }
 
         internal List<Detail> GetAllDetails()
         {
@@ -74,6 +49,8 @@ namespace AutoRepairShop
                 if (newDetail.Type == _details[i].Type)
                 {
                     _details[i] = newDetail;
+
+                    return;
                 }
             }
         }
@@ -81,6 +58,54 @@ namespace AutoRepairShop
         internal bool CarIsBroken()
         {
             foreach (Detail detail in _details)
+            {
+                if (detail.IsBroken)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private List<Detail> FillDetails()
+        {
+            var details = new List<Detail>();
+            var catalog = _partsFactory.GetCatalog();
+
+            if (catalog == null || catalog.Count == Utils.FirstIndex)
+            {
+                throw new InvalidOperationException("Каталог деталей пуст");
+            }
+
+            foreach (var data in catalog)
+            {
+                var detail = new Detail(
+                    data.Value.Type,
+                    data.Value.Description,
+                    data.Value.Name,
+                    data.Value.Price,
+                    data.Value.ReplacementCost);
+
+                if (Utils.GetRandomBool(DefaultBreakdownChance))
+                {
+                    detail.BrokeDetail();
+                }
+
+                details.Add(detail);
+            }
+
+            if (HasBrokenDetail(details) == false)
+            {
+                details[Utils.GetRandomNumber(Utils.FirstIndex, details.Count)].BrokeDetail();
+            }
+
+            return details;
+        }
+
+        private static bool HasBrokenDetail(List<Detail> details)
+        {
+            foreach (Detail detail in details)
             {
                 if (detail.IsBroken)
                 {

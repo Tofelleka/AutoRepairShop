@@ -1,4 +1,4 @@
-﻿namespace AutoRepairShop
+namespace AutoRepairShop
 {
     internal class Detail
     {
@@ -18,6 +18,14 @@
         public decimal Price { get; }
         public decimal ReplacementCost { get; }
         public bool IsBroken { get; private set; }
+
+        public decimal Payout
+        {
+            get
+            {
+                return Price + ReplacementCost;
+            }
+        }
 
         internal void BrokeDetail()
         {
