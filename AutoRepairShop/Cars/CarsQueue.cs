@@ -1,6 +1,6 @@
-﻿using AutoRepairShop.UI;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using AutoRepairShop.Common;
 
 namespace AutoRepairShop
 {
@@ -13,11 +13,11 @@ namespace AutoRepairShop
         private readonly Dictionary<DetailType, Detail> _catalog;
         private readonly Queue<Car> _carsQueue;
 
-        internal CarsQueue(PartsFactory detailsStore, IRandomSource random)
+        internal CarsQueue(PartsFactory partsFactory, IRandomSource random)
         {
-            if (detailsStore == null)
+            if (partsFactory == null)
             {
-                throw new ArgumentNullException(nameof(detailsStore));
+                throw new ArgumentNullException(nameof(partsFactory));
             }
 
             if (random == null)
@@ -27,7 +27,7 @@ namespace AutoRepairShop
 
             _random = random;
             _carsQueue = new Queue<Car>();
-            _catalog = detailsStore.GetCatalog();
+            _catalog = partsFactory.GetCatalog();
         }
 
         internal int Count

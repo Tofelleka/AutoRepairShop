@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AutoRepairShop.UI
+namespace AutoRepairShop.Common
 {
     internal class SystemRandomSource : IRandomSource
     {

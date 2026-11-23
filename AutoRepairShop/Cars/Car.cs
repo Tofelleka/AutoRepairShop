@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AutoRepairShop.Common;
 
 namespace AutoRepairShop
 {
@@ -19,7 +20,6 @@ namespace AutoRepairShop
             "ВАЗ - 2115"
         };
 
-        private readonly Dictionary<DetailType, Detail> _partsCatalog;
         private readonly IRandomSource _random;
         private readonly Dictionary<DetailType, Detail> _details;
 
@@ -30,12 +30,12 @@ namespace AutoRepairShop
                 throw new ArgumentNullException(nameof(partsCatalog));
             }
 
-            if(random == null)
+            if (random == null)
             {
                 throw new ArgumentNullException(nameof(random));
             }
 
-            _partsCatalog = partsCatalog;
+            var _partsCatalog = partsCatalog;
             _random = random;
             _details = FillDetails();
             Name = Names[_random.Next(0, Names.Count)];
@@ -45,9 +45,9 @@ namespace AutoRepairShop
 
         internal List<Detail> GetAllDetails()
         {
-             var details = new List<Detail>();
+            var details = new List<Detail>();
 
-            foreach(var pair in _details)
+            foreach (var pair in _details)
             {
                 details.Add(pair.Value);
             }
@@ -76,7 +76,7 @@ namespace AutoRepairShop
         private Dictionary<DetailType, Detail> FillDetails()
         {
             var details = new Dictionary<DetailType, Detail>();
-            
+
             if (_partsCatalog.Count == 0)
             {
                 throw new InvalidOperationException("Каталог деталей пуст");
