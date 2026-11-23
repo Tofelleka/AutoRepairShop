@@ -1,4 +1,3 @@
-using AutoRepairShop.UI;
 using System;
 using System.Collections.Generic;
 
@@ -39,7 +38,7 @@ namespace AutoRepairShop
             _partsCatalog = partsCatalog;
             _random = random;
             _details = FillDetails();
-            Name = Names[_random.Next(0, _details.Count)];
+            Name = Names[_random.Next(0, Names.Count)];
         }
 
         public string Name { get; }
