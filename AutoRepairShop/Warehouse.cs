@@ -7,22 +7,35 @@ namespace AutoRepairShop
     {
         internal const int WarehouseCapacity = 60;
 
-        private readonly PartsFactory _detailsStore;
+        private readonly PartsFactory _partsFactory;
 
         private readonly Dictionary<DetailType, List<Detail>> _details;
 
-        internal Warehouse(PartsFactory detailsStore)
+        internal Warehouse(PartsFactory partsFactory)
         {
-            if (detailsStore == null)
+            if (partsFactory == null)
             {
-                throw new ArgumentNullException(nameof(detailsStore));
+                throw new ArgumentNullException(nameof(partsFactory));
             }
 
-            _detailsStore = detailsStore;
+            _partsFactory = partsFactory;
             _details = FillDetails();
         }
 
-        public int TotalQuantity { get; private set; }
+        public int TotalQuantity 
+        {
+            get
+            {
+                int count = 0;
+
+                foreach(var pair in _details)
+                {
+                    count += pair.Value.Count;
+                }
+
+                return count;
+            }
+        }
 
         private Dictionary<DetailType, List<Detail>> FillDetails()
         {
@@ -41,13 +54,11 @@ namespace AutoRepairShop
 
                 for (int i = 0; i < initialQuantityDetails; i++)
                 {
-                    Detail newDetail = _detailsStore.SellDetail(type);
+                    Detail newDetail = _partsFactory.SellDetail(type);
 
                     if (TotalQuantity < WarehouseCapacity && newDetail != null)
                     {
                         tempDetails.Add(newDetail);
-
-                        TotalQuantity++;
                     }
                     else break;
                 }
@@ -68,12 +79,25 @@ namespace AutoRepairShop
 
                 detailOfType.RemoveAt(lastIndex);
 
-                TotalQuantity--;
-
                 return detail;
             }
 
             return null;
+        }
+
+        internal bool TryAdd()
+        {
+            if(TotalQuantity < WarehouseCapacity)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        internal void AddDetail(Detail detail)
+        {
+            _details[detail.Type].Add(detail);
         }
     }
 }

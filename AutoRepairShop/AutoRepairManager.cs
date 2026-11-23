@@ -7,7 +7,8 @@ namespace AutoRepairShop
         private const int CommandRepair = 0;
         private const int CommandContinue = 1;
 
-        private readonly PartsFactory _detailStore;
+        private readonly PartsFactory _partsFactory;
+        private readonly PartsShop _partsShop;
         private readonly CarsQueue _carsQueue;
         private readonly Warehouse _warehouse;
         private readonly Garage _garage;
@@ -15,14 +16,15 @@ namespace AutoRepairShop
 
         internal AutoRepairManager()
         {
-            _detailStore = new PartsFactory();
+            _partsFactory = new PartsFactory();
             _cashRegister = new CashRegister();
-            _carsQueue = new CarsQueue(_detailStore);
-            _warehouse = new Warehouse(_detailStore);
+            _carsQueue = new CarsQueue(_partsFactory);
+            _warehouse = new Warehouse(_partsFactory);
             _garage = new Garage(_warehouse);
+            _partsShop = new PartsShop(_partsFactory, _warehouse, _cashRegister);
         }
 
-        public void SimulateWorkDay()
+        internal void SimulateWorkDay()
         {
             int day = 1;
 
@@ -102,6 +104,28 @@ namespace AutoRepairShop
             }
 
             return result;
+        }
+
+        private void MakePurchase()
+        {
+            DetailType type = DetailType.Generator;
+
+            PurchaseReport report = _partsShop.Buy(type);
+
+            switch(report.Outcome)
+            {
+                case PurchaseOutcome.Bought:
+                    break;
+
+                case PurchaseOutcome.NotEnoughMoney:
+                    break;
+
+                case PurchaseOutcome.WarehouseIsFull:
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 }

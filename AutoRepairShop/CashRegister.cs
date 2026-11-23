@@ -13,5 +13,22 @@
         {
             Money += report.Total;
         }
+
+        internal bool TryPay(decimal price)
+        {
+            if(price <= Money)
+            {
+                Money -= price;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        internal void Pay(decimal price)
+        {
+            Money -= price;
+        }
     }
 }
