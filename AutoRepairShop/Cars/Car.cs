@@ -100,7 +100,9 @@ namespace AutoRepairShop
 
             if (HasBrokenDetail(details) == false)
             {
-                details[(DetailType)_random.Next(0, Enum.GetValues(typeof(DetailType)).Length)].BrokeDetail();
+                var types = new List<DetailType>(details.Keys);
+
+                details[types[_random.Next(0, types.Count)]].BrokeDetail();
             }
 
             return details;

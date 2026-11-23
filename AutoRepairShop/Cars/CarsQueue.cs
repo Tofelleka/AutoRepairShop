@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using AutoRepairShop.UI;
 using System;
+using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
@@ -46,7 +47,7 @@ namespace AutoRepairShop
 
         internal void AddCars()
         {
-            int carsCount = _random.Next(MinCarsPerDay, MaxCarsPerDay + 1);
+            int carsCount = _random.NextInclusive(MinCarsPerDay, MaxCarsPerDay);
 
             for (int i = 0; i < carsCount; i++)
             {
