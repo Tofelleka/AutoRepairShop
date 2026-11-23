@@ -103,35 +103,5 @@ namespace AutoRepairShop
 
             return result;
         }
-
-        private void TryMakePurchase()
-        {
-            DetailType type = DetailType.Generator;
-
-            PurchaseReport report = _partsShop.Buy(type);
-
-            switch(report.Outcome)
-            {
-                case PurchaseOutcome.Bought:
-                    MakePurchase(report);
-                    break;
-
-                case PurchaseOutcome.NotEnoughMoney:
-                    break;
-
-                case PurchaseOutcome.WarehouseIsFull:
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        private void MakePurchase(PurchaseReport report)
-        {
-            _cashRegister.Pay(report.Detail.Price);
-
-            _warehouse.AddDetail(_partsFactory.CreateNewDetail(report.Detail.Type));
-        }
     }
 }

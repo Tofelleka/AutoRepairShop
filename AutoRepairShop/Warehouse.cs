@@ -26,7 +26,7 @@ namespace AutoRepairShop
         {
             get
             {
-                if(_details.Count == 0)
+                if(_details == null)
                 {
                     return 0;
                 }
@@ -85,19 +85,16 @@ namespace AutoRepairShop
             return null;
         }
 
-        internal bool TryAdd()
+        internal bool TryAdd(Detail detail)
         {
             if(TotalQuantity < WarehouseCapacity)
             {
+                _details[detail.Type].Add(detail);
+
                 return true;
             }
 
             return false;
-        }
-
-        internal void AddDetail(Detail detail)
-        {
-            _details[detail.Type].Add(detail);
         }
     }
 }

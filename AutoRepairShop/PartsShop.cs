@@ -17,24 +17,20 @@
         {
             if (_partsFactory.GetCatalog().TryGetValue(type, out Detail detail))
             {
-                if (_warehouse.TryAdd())
+                if(_cashRegister.Money < detail.Price)
                 {
-                    if (_cashRegister.TryPay(detail.Price))
-                    {
-                        return new PurchaseReport(PurchaseOutcome.Bought, detail);
-                    }
-                    else
-                    {
-                        return new PurchaseReport(PurchaseOutcome.NotEnoughMoney, detail);
-                    }
+                    return new PurchaseReport(PurchaseOutcome.NotEnoughMoney, detail);
                 }
-                else
+
+                if (_warehouse.TryAdd() == false)
                 {
                     return new PurchaseReport(PurchaseOutcome.WarehouseIsFull, detail);
                 }
             }
 
-            return new PurchaseReport(PurchaseOutcome.UnknownDetail, null);
+            _cashRegister.TryPay(detail.Price);
+
+            return new PurchaseReport(PurchaseOutcome.Bought, detail);
         }
     }
 }

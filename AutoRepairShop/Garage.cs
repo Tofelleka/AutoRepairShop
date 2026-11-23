@@ -67,7 +67,7 @@ namespace AutoRepairShop
                 {
                     if (replacementDetail.IsBroken)
                     {
-                        ReplacePart(newDetail, replacementDetail, car);
+                        ReplacePart(newDetail, car);
 
                         result = newDetail.Price + newDetail.ReplacementCost;
 
@@ -75,7 +75,7 @@ namespace AutoRepairShop
                     }
                     else
                     {
-                        ReplacePart(newDetail, replacementDetail, car);
+                        ReplacePart(newDetail, car);
 
                         return new DetailRepairReport(RepairOutcome.ReplacedHealthy, result, replacementDetail);
                     }

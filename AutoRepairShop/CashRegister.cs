@@ -25,10 +25,5 @@
 
             return false;
         }
-
-        internal void Pay(decimal price)
-        {
-            Money -= price;
-        }
     }
 }
