@@ -47,9 +47,9 @@ namespace AutoRepairShop.UI
             DoubleLine('╔', '═', '╗');
             DoubleRow(string.Empty, ConsoleColor.Gray);
             DoubleRow(Center("АВТОСЕРВИС"), ConsoleColor.Cyan);
-            DoubleRow(Center("«ГАРАЖ 2108»"), ConsoleColor.Cyan);
+            DoubleRow(Center("«ГАРАЖ НАРОДНЫЙ»"), ConsoleColor.Cyan);
             DoubleRow(string.Empty, ConsoleColor.Gray);
-            DoubleRow(Center("стартовый капитал: " + Money(startMoney)), ConsoleColor.White);
+            DoubleRow(Center("денях на руках: " + Money(startMoney)), ConsoleColor.White);
             DoubleRow(Center("одна команда — одна деталь"), ConsoleColor.DarkGray);
             DoubleRow(string.Empty, ConsoleColor.Gray);
             DoubleLine('╚', '═', '╝');
@@ -63,7 +63,7 @@ namespace AutoRepairShop.UI
 
             Top();
             Row("ДЕНЬ " + day, ConsoleColor.Cyan);
-            Row(TwoColumns("В кассе:", Money(money)), ConsoleColor.White);
+            Row(TwoColumns("В кармане:", Money(money)), ConsoleColor.White);
             Row(TwoColumns("В очереди машин:", carsInQueue + " шт."),
                 carsInQueue > 0 ? ConsoleColor.Green : ConsoleColor.DarkGray);
             Middle();
