@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\AutoRepairManager.cs" />
+    <Compile Include="UI\Illustrator.cs" />
     <Compile Include="Cars\Car.cs" />
     <Compile Include="Finance\CashRegister.cs" />
     <Compile Include="Repairs\DetailRepairReport.cs" />

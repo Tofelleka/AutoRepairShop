@@ -1,11 +1,12 @@
-﻿namespace AutoRepairShop
+using System;
+using System.Collections.Generic;
+using AutoRepairShop.UI;
+
+namespace AutoRepairShop
 {
     internal class AutoRepairManager
     {
-        private const int CommandExit = 0;
-        private const int CommandRepair = 1;
-        private const int CommandContinue = 2;
-
+        private readonly Illustrator _illustrator;
         private readonly PartsFactory _partsFactory;
         private readonly PartsShop _partsShop;
         private readonly CarsQueue _carsQueue;
@@ -13,8 +14,14 @@
         private readonly Garage _garage;
         private readonly CashRegister _cashRegister;
 
-        internal AutoRepairManager()
+        internal AutoRepairManager(Illustrator illustrator)
         {
+            if (illustrator == null)
+            {
+                throw new ArgumentNullException(nameof(illustrator));
+            }
+
+            _illustrator = illustrator;
             _partsFactory = new PartsFactory();
             _cashRegister = new CashRegister();
             _carsQueue = new CarsQueue(_partsFactory);
@@ -23,86 +30,140 @@
             _partsShop = new PartsShop(_partsFactory, _warehouse, _cashRegister);
         }
 
-        internal void SimulateWorkDay()
+        internal void Run()
         {
+            _illustrator.ShowBanner(_cashRegister.Money);
+
             int day = 1;
 
             bool isWork = true;
 
             while (isWork)
             {
-
                 _carsQueue.AddCars();
 
-                while (_carsQueue.HasCars)
+                bool isDayOver = false;
+
+                while (isDayOver == false)
                 {
-                    Car car = _carsQueue.DequeueCar();
+                    DayCommand command = _illustrator.AskDayCommand(day, _cashRegister.Money, _carsQueue.Count);
 
-                    RepairReport report;
-
-                    if (Utils.ReadNumber() == CommandRepair)
+                    switch (command)
                     {
-                        report = SuperviseRepairNextCar(car);
-                    }
-                    else
-                    {
-                        report = _garage.RefuseRepairs();
-                    }
+                        case DayCommand.TakeCar:
+                            TakeNextCar();
+                            break;
 
-                    _cashRegister.Apply(report);
+                        case DayCommand.Shop:
+                            OpenShop();
+                            break;
+
+                        case DayCommand.EndDay:
+                            isDayOver = true;
+                            break;
+                    }
                 }
 
-                isWork = Utils.ReadNumber() == CommandContinue;
+                isWork = _illustrator.AskNextDay(day, _cashRegister.Money);
 
                 day++;
             }
+
+            _illustrator.ShowFinal(_cashRegister.Money, day - 1);
         }
 
-        private RepairReport SuperviseRepairNextCar(Car car)
+        private void TakeNextCar()
         {
-            decimal revenueFromRepair = 0m;
+            if (_carsQueue.HasCars == false)
+            {
+                _illustrator.ShowNoCars();
+                _illustrator.Pause();
+
+                return;
+            }
+
+            Car car = _carsQueue.DequeueCar();
+
+            RepairReport report = _illustrator.AskRepairCar(car)
+                ? RepairCar(car)
+                : _garage.RefuseRepairs();
+
+            _cashRegister.Apply(report);
+
+            _illustrator.ShowRepairReport(report, _cashRegister.Money);
+            _illustrator.Pause();
+        }
+
+        private RepairReport RepairCar(Car car)
+        {
+            decimal revenue = 0m;
 
             while (car.CarIsBroken())
             {
-                int userInput = Utils.ReadNumber();
+                List<Detail> brokenDetails = _garage.DiagnoseFaultyParts(car);
 
-                if (userInput == CommandExit)
+                DetailType? type = _illustrator.AskDetailToRepair(brokenDetails);
+
+                if (type == null)
                 {
-                    return _garage.RefuseFurtherRepairs(revenueFromRepair, car);
+                    return _garage.RefuseFurtherRepairs(revenue, car);
                 }
 
-                int detailNummber = userInput - 1;
+                DetailRepairReport report = _garage.RepairDetail(type.Value, car);
 
-                if (Utils.ContainsDetailType(detailNummber))
-                {
-                    DetailType type = (DetailType)detailNummber;
+                revenue += report.Charge;
 
-                    var report = _garage.RepairDetail(type, car);
-
-                    revenueFromRepair += ReadRepairDetailReport(report);
-                }
+                _illustrator.ShowDetailRepair(report);
+                _illustrator.Pause();
             }
 
-            return new RepairReport(revenueFromRepair, 0m);
+            return new RepairReport(revenue, 0m);
         }
 
-        private decimal ReadRepairDetailReport(DetailRepairReport report)
+        private void OpenShop()
         {
-            decimal result = report.Charge;
+            bool isOpen = true;
 
-            switch (report.Outcome)
+            while (isOpen)
             {
-                case RepairOutcome.NoDetailInStock:
-                    break;
+                List<ShopItem> items = BuildShopItems();
 
-                case RepairOutcome.ReplacedHealthy:
-                    break;
+                DetailType? type = _illustrator.AskPartToBuy(
+                    items,
+                    _cashRegister.Money,
+                    _warehouse.TotalQuantity,
+                    Warehouse.WarehouseCapacity);
 
-                case RepairOutcome.ReplacedBroken:
-                    break;
+                if (type == null)
+                {
+                    isOpen = false;
+
+                    continue;
+                }
+
+                PurchaseReport report = _partsShop.Buy(type.Value);
+
+                _illustrator.ShowPurchase(report, _cashRegister.Money);
+                _illustrator.Pause();
+            }
+        }
+
+        private List<ShopItem> BuildShopItems()
+        {
+            var items = new List<ShopItem>();
+            var catalog = _partsFactory.GetCatalog();
+
+            foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
+            {
+                Detail detail;
+
+                if (catalog.TryGetValue(type, out detail))
+                {
+                    items.Add(new ShopItem(detail, _warehouse.GetQuantityDetail(type)));
+                }
             }
 
-            return result;
+            return items;
         }
     }
 }

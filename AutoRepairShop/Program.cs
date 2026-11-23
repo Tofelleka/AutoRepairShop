@@ -1,12 +1,15 @@
-﻿namespace AutoRepairShop
+using AutoRepairShop.UI;
+
+namespace AutoRepairShop
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            AutoRepairManager manager = new AutoRepairManager();
+            Illustrator illustrator = new Illustrator();
+            AutoRepairManager manager = new AutoRepairManager(illustrator);
 
-            manager.SimulateWorkDay();
+            manager.Run();
         }
     }
 }
