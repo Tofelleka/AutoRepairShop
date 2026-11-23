@@ -18,17 +18,8 @@ namespace AutoRepairShop
         public decimal Price { get; }
         public decimal ReplacementCost { get; }
         public bool IsBroken { get; private set; }
-        public decimal Payout
-        {
-            get
-            {
-                return Price + ReplacementCost;
-            }
-        }
+        public decimal Payout => Price + ReplacementCost;
 
-        public void BrokeDetail()
-        {
-            IsBroken = true;
-        }
+        public void BrokeDetail() => IsBroken = true;
     }
 }

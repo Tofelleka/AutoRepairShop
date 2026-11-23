@@ -8,15 +8,11 @@ namespace AutoRepairShop
         public const int WarehouseCapacity = 60;
 
         private readonly PartsFactory _partsFactory;
-
         private readonly Dictionary<DetailType, List<Detail>> _details;
 
         public Warehouse(PartsFactory partsFactory)
         {
-            if (partsFactory == null)
-            {
-                throw new ArgumentNullException(nameof(partsFactory));
-            }
+            if (partsFactory == null) { throw new ArgumentNullException(nameof(partsFactory)); }
 
             _partsFactory = partsFactory;
             _details = FillDetails();
@@ -76,10 +72,7 @@ namespace AutoRepairShop
             return null;
         }
 
-        public int GetQuantityDetail(DetailType type)
-        {
-            return _details[type].Count;
-        }
+        public int GetQuantityDetail(DetailType type) => _details[type].Count;
 
         public bool TryAdd(Detail detail)
         {

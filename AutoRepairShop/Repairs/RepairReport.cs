@@ -10,12 +10,6 @@
 
         public decimal Revenue { get; }
         public decimal Fine { get; }
-        public decimal Total
-        {
-            get
-            {
-                return Revenue - Fine;
-            }
-        }
+        public decimal Total => Revenue - Fine;
     }
 }

@@ -17,15 +17,9 @@
         {
             if (_partsFactory.GetCatalog().TryGetValue(type, out Detail detail))
             {
-                if(_cashRegister.Money < detail.Price)
-                {
-                    return new PurchaseReport(PurchaseOutcome.NotEnoughMoney, detail);
-                }
+                if(_cashRegister.Money < detail.Price) { return new PurchaseReport(PurchaseOutcome.NotEnoughMoney, detail); }
 
-                if (_warehouse.TryAdd(detail) == false)
-                {
-                    return new PurchaseReport(PurchaseOutcome.WarehouseIsFull, detail);
-                }
+                if (_warehouse.TryAdd(detail) == false) { return new PurchaseReport(PurchaseOutcome.WarehouseIsFull, detail); }
 
                 _cashRegister.TryPay(detail.Price);
 

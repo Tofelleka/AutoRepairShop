@@ -17,10 +17,7 @@ namespace AutoRepairShop
 
         public AutoRepairManager(Illustrator illustrator)
         {
-            if (illustrator == null)
-            {
-                throw new ArgumentNullException(nameof(illustrator));
-            }
+            if (illustrator == null) { throw new ArgumentNullException(nameof(illustrator)); }
 
             _illustrator = illustrator;
             IRandomSource random = new SystemRandomSource();
@@ -60,17 +57,14 @@ namespace AutoRepairShop
 
             while (car.CarIsBroken())
             {
-                List<Detail> brokenDetails = _garage.DiagnoseFaultyParts(car);
-                List<StockItem> stock = BuildStockItems();
+                var brokenDetails = _garage.DiagnoseFaultyParts(car);
+                var stock = BuildStockItems();
 
                 DetailType? type = _illustrator.AskDetailToRepair(car, brokenDetails, stock);
 
-                if (type == null)
-                {
-                    return _garage.RefuseFurtherRepairs(revenue, car);
-                }
+                if (type == null) { return _garage.RefuseFurtherRepairs(revenue, car); }
 
-                DetailRepairReport report = _garage.RepairDetail(type.Value, car);
+                var report = _garage.RepairDetail(type.Value, car);
 
                 revenue += report.Charge;
 
@@ -87,7 +81,7 @@ namespace AutoRepairShop
 
             while (isOpen)
             {
-                List<StockItem> items = BuildStockItems();
+                var items = BuildStockItems();
 
                 DetailType? type = _illustrator.AskPartToBuy(
                     items,
@@ -102,7 +96,7 @@ namespace AutoRepairShop
                     continue;
                 }
 
-                PurchaseReport report = _partsShop.Buy(type.Value);
+                var report = _partsShop.Buy(type.Value);
 
                 _illustrator.ShowPurchase(report, _cashRegister.Money);
                 _illustrator.Pause();
@@ -118,10 +112,7 @@ namespace AutoRepairShop
             {
                 Detail detail;
 
-                if (catalog.TryGetValue(type, out detail))
-                {
-                    items.Add(new StockItem(detail, _warehouse.GetQuantityDetail(type)));
-                }
+                if (catalog.TryGetValue(type, out detail)) { items.Add(new StockItem(detail, _warehouse.GetQuantityDetail(type))); }
             }
 
             return items;
@@ -143,7 +134,7 @@ namespace AutoRepairShop
 
                 while (isDayOver == false)
                 {
-                    DayCommand command = _illustrator.AskDayCommand(day, _cashRegister.Money, _carsQueue.Count);
+                    var command = _illustrator.AskDayCommand(day, _cashRegister.Money, _carsQueue.Count);
 
                     switch (command)
                     {

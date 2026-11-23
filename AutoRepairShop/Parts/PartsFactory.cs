@@ -6,10 +6,7 @@ namespace AutoRepairShop
     {
         private Dictionary<DetailType, Detail> _storeCatalog;
 
-        public PartsFactory()
-        {
-            _storeCatalog = new Dictionary<DetailType, Detail>(DetailsCatalog.GetDetailsCatalog());
-        }
+        public PartsFactory() => _storeCatalog = new Dictionary<DetailType, Detail>(DetailsCatalog.GetDetailsCatalog());
 
         public Detail CreateNewDetail(DetailType type)
         {
@@ -18,9 +15,6 @@ namespace AutoRepairShop
             return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);
         }
 
-        public Dictionary<DetailType, Detail> GetCatalog()
-        {
-            return new Dictionary<DetailType, Detail>(_storeCatalog);
-        }
+        public Dictionary<DetailType, Detail> GetCatalog() => new Dictionary<DetailType, Detail>(_storeCatalog);
     }
 }

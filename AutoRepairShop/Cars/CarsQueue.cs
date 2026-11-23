@@ -15,35 +15,17 @@ namespace AutoRepairShop
 
         public CarsQueue(PartsFactory partsFactory, IRandomSource random)
         {
-            if (partsFactory == null)
-            {
-                throw new ArgumentNullException(nameof(partsFactory));
-            }
+            if (partsFactory == null) { throw new ArgumentNullException(nameof(partsFactory)); }
 
-            if (random == null)
-            {
-                throw new ArgumentNullException(nameof(random));
-            }
+            if (random == null) { throw new ArgumentNullException(nameof(random)); }
 
             _random = random;
             _carsQueue = new Queue<Car>();
             _catalog = partsFactory.GetCatalog();
         }
 
-        public int Count
-        {
-            get
-            {
-                return _carsQueue.Count;
-            }
-        }
-        public bool HasCars
-        {
-            get
-            {
-                return (Count > 0);
-            }
-        }
+        public int Count => _carsQueue.Count;
+        public bool HasCars => Count > 0;
 
         public void AddCars()
         {
@@ -55,9 +37,6 @@ namespace AutoRepairShop
             }
         }
 
-        public Car DequeueCar()
-        {
-            return _carsQueue.Dequeue();
-        }
+        public Car DequeueCar() => _carsQueue.Dequeue();
     }
 }

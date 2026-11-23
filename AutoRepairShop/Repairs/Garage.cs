@@ -10,44 +10,29 @@ namespace AutoRepairShop
 
         private readonly Warehouse _warehouse;
 
-        public Garage(Warehouse warehouse)
-        {
-            _warehouse = warehouse;
-        }
+        public Garage(Warehouse warehouse) { _warehouse = warehouse; }
 
         public List<Detail> DiagnoseFaultyParts(Car car)
         {
-            if (car == null)
-            {
-                throw new ArgumentNullException(nameof(car));
-            }
+            if (car == null) { throw new ArgumentNullException(nameof(car)); }
 
             List<Detail> brokenDetails = new List<Detail>();
 
             foreach (Detail detail in car.GetAllDetails())
             {
-                if (detail.IsBroken)
-                {
-                    brokenDetails.Add(detail);
-                }
+                if (detail.IsBroken) { brokenDetails.Add(detail); }
             }
 
             return brokenDetails;
         }
 
-        private void ReplacePart(Detail newDetail, Car car)
-        {
-            car.ReplacementPart(newDetail);
-        }
+        private void ReplacePart(Detail newDetail, Car car) => car.ReplacementPart(newDetail);
 
         private Detail FindDetailInCar(Car car, DetailType type)
         {
             foreach (Detail detail in car.GetAllDetails())
             {
-                if (detail.Type == type)
-                {
-                    return detail;
-                }
+                if (detail.Type == type) { return detail; }
             }
 
             return null;
@@ -85,14 +70,9 @@ namespace AutoRepairShop
             return new DetailRepairReport(RepairOutcome.NoDetailInStock, result, replacementDetail);
         }
 
-        public RepairReport RefuseRepairs()
-        {
-            return new RepairReport(0m, FineForCar);
-        }
+        public RepairReport RefuseRepairs() => new RepairReport(0m, FineForCar);
 
-        public RepairReport RefuseFurtherRepairs(decimal revenueFromRepair, Car car)
-        {
-            return new RepairReport(revenueFromRepair, FineForDetail * DiagnoseFaultyParts(car).Count);
-        }
+        public RepairReport RefuseFurtherRepairs(decimal revenueFromRepair, Car car) =>
+            new RepairReport(revenueFromRepair, FineForDetail * DiagnoseFaultyParts(car).Count);
     }
 }
