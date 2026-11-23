@@ -2,16 +2,15 @@
 {
     internal enum DetailType
     {
-        Exit = 0,
-        FuelPump = 1,
-        SparkPlugs = 2,
-        Starter = 3,
-        RearShockAbsorbers = 4,
-        FrontShockAbsorbers = 5,
-        CoolingRadiator = 6,
-        Generator = 7,
-        Clutch = 8,
-        RearWheelHubBearings = 9,
-        FrontWheelHubBearings = 10
+        FuelPump = 0,
+        SparkPlugs = 1,
+        Starter = 2,
+        RearShockAbsorbers = 3,
+        FrontShockAbsorbers = 4,
+        CoolingRadiator = 5,
+        Generator = 6,
+        Clutch = 7,
+        RearWheelHubBearings = 8,
+        FrontWheelHubBearings = 9
     }
 }

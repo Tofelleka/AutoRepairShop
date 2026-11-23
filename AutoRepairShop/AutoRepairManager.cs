@@ -4,8 +4,9 @@ namespace AutoRepairShop
 {
     internal class AutoRepairManager
     {
-        private const int CommandRepair = 0;
-        private const int CommandContinue = 1;
+        private const int CommandExit = 0;
+        private const int CommandRepair = 1;
+        private const int CommandContinue = 2;
 
         private readonly PartsFactory _partsFactory;
         private readonly PartsShop _partsShop;
@@ -61,8 +62,6 @@ namespace AutoRepairShop
 
         private RepairReport SuperviseRepairNextCar(Car car)
         {
-            var brokenDetails = _garage.DiagnoseFaultyParts(car);
-
             decimal revenueFromRepair = 0m;
 
             while (car.CarIsBroken())
@@ -73,14 +72,13 @@ namespace AutoRepairShop
                 {
                     DetailType type = (DetailType)userInput;
 
-                    if(type == DetailType.Exit)
-                    {
-                        return _garage.RefuseFurtherRepairs(revenueFromRepair, car);
-                    }
-
                     var report = _garage.RepairDetail(type, car);
 
                     revenueFromRepair += ReadRepairDetailReport(report);
+                }
+                else if(userInput == CommandExit)
+                {
+                    return _garage.RefuseFurtherRepairs(revenueFromRepair, car);
                 }
             }
 
@@ -106,7 +104,7 @@ namespace AutoRepairShop
             return result;
         }
 
-        private void MakePurchase()
+        private void TryMakePurchase()
         {
             DetailType type = DetailType.Generator;
 
@@ -115,6 +113,7 @@ namespace AutoRepairShop
             switch(report.Outcome)
             {
                 case PurchaseOutcome.Bought:
+                    MakePurchase(report);
                     break;
 
                 case PurchaseOutcome.NotEnoughMoney:
@@ -126,6 +125,13 @@ namespace AutoRepairShop
                 default:
                     break;
             }
+        }
+
+        private void MakePurchase(PurchaseReport report)
+        {
+            _cashRegister.Pay(report.Detail.Price);
+
+            _warehouse.AddDetail(_partsFactory.CreateNewDetail(report.Detail.Type));
         }
     }
 }

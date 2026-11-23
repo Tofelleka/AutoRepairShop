@@ -35,7 +35,7 @@ namespace AutoRepairShop
             return brokenDetails;
         }
 
-        private void ReplacePart(Detail newDetail, Detail replacementDetail, Car car)
+        private void ReplacePart(Detail newDetail, Car car)
         {
             car.ReplacementPart(newDetail);
         }

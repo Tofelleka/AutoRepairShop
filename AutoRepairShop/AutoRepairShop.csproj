@@ -47,7 +47,7 @@
     <Compile Include="Car.cs" />
     <Compile Include="CashRegister.cs" />
     <Compile Include="DetailRepairReport.cs" />
-    <Compile Include="PartsFactory .cs" />
+    <Compile Include="PartsFactory.cs" />
     <Compile Include="Details\Detail.cs" />
     <Compile Include="Details\DetailsCatalog.cs" />
     <Compile Include="Details\DetailType.cs" />

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace AutoRepairShop
 {
@@ -12,13 +11,8 @@ namespace AutoRepairShop
             _storeCatalog = new Dictionary<DetailType, Detail>(DetailsCatalog.GetDetailsCatalog());
         }
 
-        internal Detail SellDetail(DetailType type)
+        internal Detail CreateNewDetail(DetailType type)
         {
-            if (type == DetailType.Exit)
-            {
-                throw new InvalidEnumArgumentException(nameof(type));
-            }
-
                 Detail detail = _storeCatalog[type];
 
                 return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);

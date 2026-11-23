@@ -26,6 +26,11 @@ namespace AutoRepairShop
         {
             get
             {
+                if(_details.Count == 0)
+                {
+                    return 0;
+                }
+
                 int count = 0;
 
                 foreach(var pair in _details)
@@ -45,16 +50,11 @@ namespace AutoRepairShop
 
             foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
             {
-                if (type == DetailType.Exit)
-                {
-                    continue;
-                }
-
                 var tempDetails = new List<Detail>(initialQuantityDetails);
 
                 for (int i = 0; i < initialQuantityDetails; i++)
                 {
-                    Detail newDetail = _partsFactory.SellDetail(type);
+                    Detail newDetail = _partsFactory.CreateNewDetail(type);
 
                     if (TotalQuantity < WarehouseCapacity && newDetail != null)
                     {
