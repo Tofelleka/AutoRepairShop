@@ -21,13 +21,22 @@ namespace AutoRepairShop.UI
         }
 
         public Detail Detail { get; }
+
         public int Quantity { get; }
     }
 
     internal class Illustrator
     {
         private const int TextWidth = 70;
+
         private const string Currency = "руб.";
+
+        private const int ExitCommand = 0;
+        private const int ConfirmCommand = 1;
+        private const int FirstItemNumber = 1;
+
+        private const int TakeCarCommand = 1;
+        private const int ShopCommand = 2;
 
         public Illustrator()
         {
@@ -49,7 +58,7 @@ namespace AutoRepairShop.UI
             DoubleRow(Center("АВТОСЕРВИС"), ConsoleColor.Cyan);
             DoubleRow(Center("«ГАРАЖ НАРОДНЫЙ»"), ConsoleColor.Cyan);
             DoubleRow(string.Empty, ConsoleColor.Gray);
-            DoubleRow(Center("денях на руках: " + Money(startMoney)), ConsoleColor.White);
+            DoubleRow(Center("денег на руках: " + Money(startMoney)), ConsoleColor.White);
             DoubleRow(Center("одна команда — одна деталь"), ConsoleColor.DarkGray);
             DoubleRow(string.Empty, ConsoleColor.Gray);
             DoubleLine('╚', '═', '╝');
@@ -59,39 +68,39 @@ namespace AutoRepairShop.UI
 
         public DayCommand AskDayCommand(int day, decimal money, int carsInQueue)
         {
-            Clear();
+            DrawDayScreen(day, money, carsInQueue);
 
-            Top();
-            Row("ДЕНЬ " + day, ConsoleColor.Cyan);
-            Row(TwoColumns("В кармане:", Money(money)), ConsoleColor.White);
-            Row(TwoColumns("В очереди машин:", carsInQueue + " шт."),
-                carsInQueue > 0 ? ConsoleColor.Green : ConsoleColor.DarkGray);
-            Middle();
-            Row("1 - принять машину", carsInQueue > 0 ? ConsoleColor.Gray : ConsoleColor.DarkGray);
-            Row("2 - магазин запчастей", ConsoleColor.Gray);
-            Row("0 - закончить день", ConsoleColor.DarkGray);
-            Bottom();
+            bool isChosen = false;
+            DayCommand command = DayCommand.EndDay;
 
-            while (true)
+            while (isChosen == false)
             {
                 int input = ReadNumber("Команда");
 
                 switch (input)
                 {
-                    case 0:
-                        return DayCommand.EndDay;
+                    case TakeCarCommand:
+                        command = DayCommand.TakeCar;
+                        isChosen = true;
+                        break;
 
-                    case 1:
-                        return DayCommand.TakeCar;
+                    case ShopCommand:
+                        command = DayCommand.Shop;
+                        isChosen = true;
+                        break;
 
-                    case 2:
-                        return DayCommand.Shop;
+                    case ExitCommand:
+                        command = DayCommand.EndDay;
+                        isChosen = true;
+                        break;
 
                     default:
                         ShowError("Такой команды нет. Введите 1, 2 или 0.");
                         break;
                 }
             }
+
+            return command;
         }
 
         public void ShowNoCars()
@@ -106,50 +115,45 @@ namespace AutoRepairShop.UI
 
         public bool AskRepairCar(Car car)
         {
-            Clear();
+            DrawCarScreen(car);
 
-            Top();
-            Row("МАШИНА НА ПОДЪЁМНИКЕ", ConsoleColor.Cyan);
-            Row(car.Name, ConsoleColor.White);
-            Middle();
-            Row("Ремонтируем?", ConsoleColor.Gray);
-            Row("1 - да, берём в работу", ConsoleColor.Gray);
-            Row("0 - отказать (фиксированный штраф)", ConsoleColor.DarkGray);
-            Bottom();
+            bool isAnswered = false;
+            bool isRepair = false;
 
-            while (true)
+            while (isAnswered == false)
             {
                 int input = ReadNumber("Решение");
 
-                if (input == 1)
+                if (input == ConfirmCommand)
                 {
-                    return true;
+                    isRepair = true;
+                    isAnswered = true;
                 }
-
-                if (input == 0)
+                else if (input == ExitCommand)
                 {
-                    return false;
+                    isRepair = false;
+                    isAnswered = true;
                 }
-
-                ShowError("Введите 1 или 0.");
+                else
+                {
+                    ShowError("Введите 1 или 0.");
+                }
             }
+
+            return isRepair;
         }
 
         public DetailType? AskDetailToRepair(Car car, IReadOnlyList<Detail> brokenDetails, IReadOnlyList<StockItem> stock)
         {
             if (brokenDetails == null || brokenDetails.Count == 0)
             {
-                Clear();
-
-                Top();
-                Row("МАШИНА ИСПРАВНА", ConsoleColor.Green);
-                Row(car.Name, ConsoleColor.White);
-                Bottom();
+                DrawEachDetailIsFineScreen(car);
 
                 return null;
             }
 
-            ShowChecklist(car, brokenDetails);
+            DrawChecklist(car, brokenDetails);
+            Pause();
 
             return AskStockDetail(car, stock);
         }
@@ -200,52 +204,36 @@ namespace AutoRepairShop.UI
 
         public DetailType? AskPartToBuy(IReadOnlyList<StockItem> items, decimal money, int totalQuantity, int capacity)
         {
-            while (true)
+            bool isChosen = false;
+            DetailType? type = null;
+
+            while (isChosen == false)
             {
-                Clear();
-
-                Top();
-                Row("МАГАЗИН ЗАПЧАСТЕЙ", ConsoleColor.Cyan);
-                Row(TwoColumns("В кассе:", Money(money)), ConsoleColor.White);
-                Row(TwoColumns("Склад:", totalQuantity + " / " + capacity), ConsoleColor.Gray);
-                Middle();
-                Row(TwoColumns("деталь", "цена (на складе)"), ConsoleColor.DarkGray);
-
-                for (int i = 0; i < items.Count; i++)
-                {
-                    StockItem item = items[i];
-
-                    string left = (i + 1) + ". " + item.Detail.Name;
-                    string right = Money(item.Detail.Price) + " (" + item.Quantity + " шт.)";
-
-                    Row(TwoColumns(left, right), ConsoleColor.Gray);
-                }
-
-                Middle();
-                Row("выберите номер, чтобы увидеть описание", ConsoleColor.DarkGray);
-                Row("0 - выйти из магазина", ConsoleColor.DarkGray);
-                Bottom();
+                DrawShopScreen(items, money, totalQuantity, capacity);
 
                 int input = ReadNumber("Деталь");
 
-                if (input == 0)
+                if (input == ExitCommand)
                 {
-                    return null;
+                    isChosen = true;
                 }
+                else if (input >= FirstItemNumber && input <= items.Count)
+                {
+                    StockItem selected = items[input - 1];
 
-                if (input < 1 || input > items.Count)
+                    if (ConfirmPurchase(selected, money))
+                    {
+                        type = selected.Detail.Type;
+                        isChosen = true;
+                    }
+                }
+                else
                 {
                     ShowError("Такой позиции нет в списке.");
-                    continue;
-                }
-
-                StockItem selected = items[input - 1];
-
-                if (ConfirmPurchase(selected, money))
-                {
-                    return selected.Detail.Type;
                 }
             }
+
+            return type;
         }
 
         public void ShowPurchase(PurchaseReport report, decimal money)
@@ -279,33 +267,32 @@ namespace AutoRepairShop.UI
 
         public bool AskNextDay(int day, decimal money)
         {
-            Clear();
+            DrawNextDayScreen(day, money);
 
-            Top();
-            Row("ДЕНЬ " + day + " ЗАВЕРШЁН", ConsoleColor.Cyan);
-            Row(TwoColumns("В кассе:", Money(money)),
-                money >= 0m ? ConsoleColor.White : ConsoleColor.Red);
-            Middle();
-            Row("1 - следующая смена", ConsoleColor.Gray);
-            Row("0 - закончить игру", ConsoleColor.DarkGray);
-            Bottom();
+            bool isAnswered = false;
+            bool isContinue = false;
 
-            while (true)
+            while (isAnswered == false)
             {
                 int input = ReadNumber("Решение");
 
-                if (input == 1)
+                if (input == ConfirmCommand)
                 {
-                    return true;
+                    isContinue = true;
+                    isAnswered = true;
                 }
-
-                if (input == 0)
+                else if (input == ExitCommand)
                 {
-                    return false;
+                    isContinue = false;
+                    isAnswered = true;
                 }
-
-                ShowError("Введите 1 или 0.");
+                else
+                {
+                    ShowError("Введите 1 или 0.");
+                }
             }
+
+            return isContinue;
         }
 
         public void ShowFinal(decimal money, int days)
@@ -335,7 +322,48 @@ namespace AutoRepairShop.UI
             Console.ReadLine();
         }
 
-        private void ShowChecklist(Car car, IReadOnlyList<Detail> brokenDetails)
+        private void DrawDayScreen(int day, decimal money, int carsInQueue)
+        {
+            Clear();
+
+            Top();
+            Row("ДЕНЬ " + day, ConsoleColor.Cyan);
+            Row(TwoColumns("В кармане:", Money(money)), ConsoleColor.White);
+            Row(TwoColumns("В очереди машин:", carsInQueue + " шт."),
+                carsInQueue > 0 ? ConsoleColor.Green : ConsoleColor.DarkGray);
+            Middle();
+            Row(TakeCarCommand + " - принять машину",
+                carsInQueue > 0 ? ConsoleColor.Gray : ConsoleColor.DarkGray);
+            Row(ShopCommand + " - магазин запчастей", ConsoleColor.Gray);
+            Row(ExitCommand + " - закончить день", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        private void DrawCarScreen(Car car)
+        {
+            Clear();
+
+            Top();
+            Row("МАШИНА НА ПОДЪЁМНИКЕ", ConsoleColor.Cyan);
+            Row(car.Name, ConsoleColor.White);
+            Middle();
+            Row("Ремонтируем?", ConsoleColor.Gray);
+            Row(ConfirmCommand + " - да, берём в работу", ConsoleColor.Gray);
+            Row(ExitCommand + " - отказать (фиксированный штраф)", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        private void DrawEachDetailIsFineScreen(Car car)
+        {
+            Clear();
+
+            Top();
+            Row("МАШИНА ИСПРАВНА", ConsoleColor.Green);
+            Row(car.Name, ConsoleColor.White);
+            Bottom();
+        }
+
+        private void DrawChecklist(Car car, IReadOnlyList<Detail> brokenDetails)
         {
             Clear();
 
@@ -354,11 +382,38 @@ namespace AutoRepairShop.UI
             }
 
             Bottom();
-
-            Pause();
         }
 
         private DetailType? AskStockDetail(Car car, IReadOnlyList<StockItem> stock)
+        {
+            DrawStockScreen(car, stock);
+
+            bool isChosen = false;
+            DetailType? type = null;
+
+            while (isChosen == false)
+            {
+                int input = ReadNumber("Деталь");
+
+                if (input == ExitCommand)
+                {
+                    isChosen = true;
+                }
+                else if (input >= FirstItemNumber && input <= stock.Count)
+                {
+                    type = stock[input - 1].Detail.Type;
+                    isChosen = true;
+                }
+                else
+                {
+                    ShowError("Такой позиции нет в списке.");
+                }
+            }
+
+            return type;
+        }
+
+        private void DrawStockScreen(Car car, IReadOnlyList<StockItem> stock)
         {
             Clear();
 
@@ -373,7 +428,7 @@ namespace AutoRepairShop.UI
             {
                 StockItem item = stock[i];
 
-                string left = (i + 1) + ". " + item.Detail.Name;
+                string left = (i + FirstItemNumber) + ". " + item.Detail.Name;
                 string right = Money(item.Detail.Price) + " (" + item.Quantity + " шт.)";
 
                 Row(TwoColumns(left, right), item.Quantity > 0 ? ConsoleColor.Gray : ConsoleColor.DarkGray);
@@ -381,29 +436,69 @@ namespace AutoRepairShop.UI
 
             Middle();
             Row("Если деталь на машине исправна — она уйдёт со склада без выплаты.", ConsoleColor.Yellow);
-            Row("0 - прекратить ремонт", ConsoleColor.DarkGray);
+            Row(ExitCommand + " - прекратить ремонт", ConsoleColor.DarkGray);
             Row("(штраф за каждую непочиненную деталь)", ConsoleColor.DarkGray);
             Bottom();
+        }
 
-            while (true)
+        private void DrawShopScreen(IReadOnlyList<StockItem> items, decimal money, int totalQuantity, int capacity)
+        {
+            Clear();
+
+            Top();
+            Row("МАГАЗИН ЗАПЧАСТЕЙ", ConsoleColor.Cyan);
+            Row(TwoColumns("В кассе:", Money(money)), ConsoleColor.White);
+            Row(TwoColumns("Склад:", totalQuantity + " / " + capacity), ConsoleColor.Gray);
+            Middle();
+            Row(TwoColumns("деталь", "цена (на складе)"), ConsoleColor.DarkGray);
+
+            for (int i = 0; i < items.Count; i++)
             {
-                int input = ReadNumber("Деталь");
+                StockItem item = items[i];
 
-                if (input == 0)
-                {
-                    return null;
-                }
+                string left = (i + FirstItemNumber) + ". " + item.Detail.Name;
+                string right = Money(item.Detail.Price) + " (" + item.Quantity + " шт.)";
 
-                if (input >= 1 && input <= stock.Count)
-                {
-                    return stock[input - 1].Detail.Type;
-                }
-
-                ShowError("Такой позиции нет в списке.");
+                Row(TwoColumns(left, right), ConsoleColor.Gray);
             }
+
+            Middle();
+            Row("выберите номер, чтобы увидеть описание", ConsoleColor.DarkGray);
+            Row(ExitCommand + " - выйти из магазина", ConsoleColor.DarkGray);
+            Bottom();
         }
 
         private bool ConfirmPurchase(StockItem item, decimal money)
+        {
+            DrawPurchaseCard(item, money);
+
+            bool isAnswered = false;
+            bool isBuy = false;
+
+            while (isAnswered == false)
+            {
+                int input = ReadNumber("Решение");
+
+                if (input == ConfirmCommand)
+                {
+                    isBuy = true;
+                    isAnswered = true;
+                }
+                else if (input == ExitCommand)
+                {
+                    isBuy = false;
+                    isAnswered = true;
+                }
+                else
+                {
+                    ShowError("Введите 1 или 0.");
+                }
+            }
+
+            return isBuy;
+        }
+
+        private void DrawPurchaseCard(StockItem item, decimal money)
         {
             Clear();
 
@@ -419,26 +514,23 @@ namespace AutoRepairShop.UI
             Row(TwoColumns("в кассе:", Money(money)),
                 money >= item.Detail.Price ? ConsoleColor.Gray : ConsoleColor.Red);
             Middle();
-            Row("1 - купить", ConsoleColor.Gray);
-            Row("0 - назад к списку", ConsoleColor.DarkGray);
+            Row(ConfirmCommand + " - купить", ConsoleColor.Gray);
+            Row(ExitCommand + " - назад к списку", ConsoleColor.DarkGray);
             Bottom();
+        }
 
-            while (true)
-            {
-                int input = ReadNumber("Решение");
+        private void DrawNextDayScreen(int day, decimal money)
+        {
+            Clear();
 
-                if (input == 1)
-                {
-                    return true;
-                }
-
-                if (input == 0)
-                {
-                    return false;
-                }
-
-                ShowError("Введите 1 или 0.");
-            }
+            Top();
+            Row("ДЕНЬ " + day + " ЗАВЕРШЁН", ConsoleColor.Cyan);
+            Row(TwoColumns("В кассе:", Money(money)),
+                money >= 0m ? ConsoleColor.White : ConsoleColor.Red);
+            Middle();
+            Row(ConfirmCommand + " - следующая смена", ConsoleColor.Gray);
+            Row(ExitCommand + " - закончить игру", ConsoleColor.DarkGray);
+            Bottom();
         }
 
         private static void Clear()
@@ -454,27 +546,31 @@ namespace AutoRepairShop.UI
 
         private static int ReadNumber(string label)
         {
-            while (true)
+            int number = 0;
+            bool isNumber = false;
+
+            while (isNumber == false)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.Write("  " + label + " > ");
                 Console.ResetColor();
 
                 string text = Console.ReadLine();
-                int number;
 
                 if (text == null)
                 {
                     throw new InvalidOperationException("Ввод закончился: поток ввода закрыт.");
                 }
 
-                if (int.TryParse(text, out number) && number >= 0)
-                {
-                    return number;
-                }
+                isNumber = int.TryParse(text, out number) && number >= 0;
 
-                ShowError("Нужно целое число от 0 и больше.");
+                if (isNumber == false)
+                {
+                    ShowError("Нужно целое число от 0 и больше.");
+                }
             }
+
+            return number;
         }
 
         private static void ShowError(string text)
@@ -492,10 +588,8 @@ namespace AutoRepairShop.UI
             return sign + number + " " + Currency;
         }
 
-        private static string DetailName(Detail detail)
-        {
-            return detail == null ? "неизвестная деталь" : detail.Name;
-        }
+        private static string DetailName(Detail detail) =>
+            detail == null ? "неизвестная деталь" : detail.Name;
 
         private static string TwoColumns(string left, string right)
         {
@@ -509,32 +603,14 @@ namespace AutoRepairShop.UI
             return left + new string(' ', gap) + right;
         }
 
-        private static string Center(string text)
-        {
-            int pad = (TextWidth - text.Length) / 2;
+        private static string Center(string text) =>
+            new string(' ', Math.Max(0, (TextWidth - text.Length) / 2)) + text;
 
-            if (pad < 0)
-            {
-                pad = 0;
-            }
+        private static void Top() => BorderLine('┌', '─', '┐');
 
-            return new string(' ', pad) + text;
-        }
+        private static void Middle() => BorderLine('├', '─', '┤');
 
-        private static void Top()
-        {
-            BorderLine('┌', '─', '┐');
-        }
-
-        private static void Middle()
-        {
-            BorderLine('├', '─', '┤');
-        }
-
-        private static void Bottom()
-        {
-            BorderLine('└', '─', '┘');
-        }
+        private static void Bottom() => BorderLine('└', '─', '┘');
 
         private static void BorderLine(char left, char fill, char right)
         {
@@ -550,10 +626,7 @@ namespace AutoRepairShop.UI
             Console.ResetColor();
         }
 
-        private static void Row(string text)
-        {
-            Row(text, ConsoleColor.Gray);
-        }
+        private static void Row(string text) => Row(text, ConsoleColor.Gray);
 
         private static void Row(string text, ConsoleColor color)
         {

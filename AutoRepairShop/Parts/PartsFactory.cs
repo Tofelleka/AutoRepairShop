@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
     internal class PartsFactory
     {
-        private Dictionary<DetailType, Detail> _storeCatalog;
+        private readonly Dictionary<DetailType, Detail> _storeCatalog;
 
         public PartsFactory() => _storeCatalog = new Dictionary<DetailType, Detail>(DetailsCatalog.GetDetailsCatalog());
 

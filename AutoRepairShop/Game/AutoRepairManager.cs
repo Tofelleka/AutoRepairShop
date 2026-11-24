@@ -17,7 +17,10 @@ namespace AutoRepairShop
 
         public AutoRepairManager(Illustrator illustrator)
         {
-            if (illustrator == null) { throw new ArgumentNullException(nameof(illustrator)); }
+            if (illustrator == null)
+            {
+                throw new ArgumentNullException(nameof(illustrator));
+            }
 
             _illustrator = illustrator;
             IRandomSource random = new SystemRandomSource();
@@ -27,6 +30,48 @@ namespace AutoRepairShop
             _warehouse = new Warehouse(_partsFactory);
             _garage = new Garage(_warehouse);
             _partsShop = new PartsShop(_partsFactory, _warehouse, _cashRegister);
+        }
+
+        public void Run()
+        {
+            _illustrator.ShowBanner(_cashRegister.Money);
+
+            int day = 1;
+
+            bool isWork = true;
+
+            while (isWork)
+            {
+                _carsQueue.AddCars();
+
+                bool isDayOver = false;
+
+                while (isDayOver == false)
+                {
+                    var command = _illustrator.AskDayCommand(day, _cashRegister.Money, _carsQueue.Count);
+
+                    switch (command)
+                    {
+                        case DayCommand.TakeCar:
+                            TakeNextCar();
+                            break;
+
+                        case DayCommand.Shop:
+                            OpenShop();
+                            break;
+
+                        case DayCommand.EndDay:
+                            isDayOver = true;
+                            break;
+                    }
+                }
+
+                isWork = _illustrator.AskNextDay(day, _cashRegister.Money);
+
+                day++;
+            }
+
+            _illustrator.ShowFinal(_cashRegister.Money, day - 1);
         }
 
         private void TakeNextCar()
@@ -62,7 +107,10 @@ namespace AutoRepairShop
 
                 DetailType? type = _illustrator.AskDetailToRepair(car, brokenDetails, stock);
 
-                if (type == null) { return _garage.RefuseFurtherRepairs(revenue, car); }
+                if (type == null)
+                {
+                    return _garage.RefuseFurtherRepairs(revenue, car);
+                }
 
                 var report = _garage.RepairDetail(type.Value, car);
 
@@ -112,52 +160,13 @@ namespace AutoRepairShop
             {
                 Detail detail;
 
-                if (catalog.TryGetValue(type, out detail)) { items.Add(new StockItem(detail, _warehouse.GetQuantityDetail(type))); }
+                if (catalog.TryGetValue(type, out detail))
+                {
+                    items.Add(new StockItem(detail, _warehouse.GetQuantityDetail(type)));
+                }
             }
 
             return items;
-        }
-
-        public void Run()
-        {
-            _illustrator.ShowBanner(_cashRegister.Money);
-
-            int day = 1;
-
-            bool isWork = true;
-
-            while (isWork)
-            {
-                _carsQueue.AddCars();
-
-                bool isDayOver = false;
-
-                while (isDayOver == false)
-                {
-                    var command = _illustrator.AskDayCommand(day, _cashRegister.Money, _carsQueue.Count);
-
-                    switch (command)
-                    {
-                        case DayCommand.TakeCar:
-                            TakeNextCar();
-                            break;
-
-                        case DayCommand.Shop:
-                            OpenShop();
-                            break;
-
-                        case DayCommand.EndDay:
-                            isDayOver = true;
-                            break;
-                    }
-                }
-
-                isWork = _illustrator.AskNextDay(day, _cashRegister.Money);
-
-                day++;
-            }
-
-            _illustrator.ShowFinal(_cashRegister.Money, day - 1);
         }
     }
 }

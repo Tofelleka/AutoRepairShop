@@ -12,7 +12,10 @@ namespace AutoRepairShop
 
         public Warehouse(PartsFactory partsFactory)
         {
-            if (partsFactory == null) { throw new ArgumentNullException(nameof(partsFactory)); }
+            if (partsFactory == null)
+            {
+                throw new ArgumentNullException(nameof(partsFactory));
+            }
 
             _partsFactory = partsFactory;
             _details = FillDetails();
@@ -31,29 +34,6 @@ namespace AutoRepairShop
 
                 return count;
             }
-        }
-
-        private Dictionary<DetailType, List<Detail>> FillDetails()
-        {
-            var details = new Dictionary<DetailType, List<Detail>>(Enum.GetValues(typeof(DetailType)).Length);
-
-            const int initialQuantityDetails = 2;
-
-            foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
-            {
-                var tempDetails = new List<Detail>(initialQuantityDetails);
-
-                for (int i = 0; i < initialQuantityDetails; i++)
-                {
-                    Detail newDetail = _partsFactory.CreateNewDetail(type);
-
-                    tempDetails.Add(newDetail);
-                }
-
-                details[type] = tempDetails;
-            }
-
-            return details;
         }
 
         public Detail SendPartToGarage(DetailType type)
@@ -84,6 +64,29 @@ namespace AutoRepairShop
             }
 
             return false;
+        }
+
+        private Dictionary<DetailType, List<Detail>> FillDetails()
+        {
+            var details = new Dictionary<DetailType, List<Detail>>(Enum.GetValues(typeof(DetailType)).Length);
+
+            const int initialQuantityDetails = 2;
+
+            foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
+            {
+                var tempDetails = new List<Detail>(initialQuantityDetails);
+
+                for (int i = 0; i < initialQuantityDetails; i++)
+                {
+                    Detail newDetail = _partsFactory.CreateNewDetail(type);
+
+                    tempDetails.Add(newDetail);
+                }
+
+                details[type] = tempDetails;
+            }
+
+            return details;
         }
     }
 }

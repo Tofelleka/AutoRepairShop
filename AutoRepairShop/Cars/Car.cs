@@ -25,9 +25,15 @@ namespace AutoRepairShop
 
         public Car(Dictionary<DetailType, Detail> partsCatalog, IRandomSource random)
         {
-            if (partsCatalog == null) { throw new ArgumentNullException(nameof(partsCatalog)); }
+            if (partsCatalog == null)
+            {
+                throw new ArgumentNullException(nameof(partsCatalog));
+            }
 
-            if (random == null) { throw new ArgumentNullException(nameof(random)); }
+            if (random == null)
+            {
+                throw new ArgumentNullException(nameof(random));
+            }
 
             _random = random;
             _details = FillDetails(partsCatalog);
@@ -36,11 +42,31 @@ namespace AutoRepairShop
 
         public string Name { get; }
 
+        public List<Detail> GetAllDetails() => new List<Detail>(_details.Values);
+
+        public void ReplaceDetail(Detail newDetail) => _details[newDetail.Type] = newDetail;
+
+        public bool CarIsBroken()
+        {
+            foreach (var pair in _details)
+            {
+                if (pair.Value.IsBroken)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private Dictionary<DetailType, Detail> FillDetails(Dictionary<DetailType, Detail> partsCatalog)
         {
             var details = new Dictionary<DetailType, Detail>();
 
-            if (partsCatalog.Count == 0) { throw new InvalidOperationException("Каталог деталей пуст"); }
+            if (partsCatalog.Count == 0)
+            {
+                throw new InvalidOperationException("Каталог деталей пуст");
+            }
 
             foreach (var pair in partsCatalog)
             {
@@ -50,7 +76,10 @@ namespace AutoRepairShop
                     pair.Value.Price,
                     pair.Value.ReplacementCost);
 
-                if (_random.NextChance(DefaultBreakdownChance)) { detail.BrokeDetail(); }
+                if (_random.NextChance(DefaultBreakdownChance))
+                {
+                    detail.BrokeDetail();
+                }
 
                 details[detail.Type] = detail;
             }
@@ -69,28 +98,10 @@ namespace AutoRepairShop
         {
             foreach (var pair in details)
             {
-                if (pair.Value.IsBroken) { return true; }
-            }
-
-            return false;
-        }
-
-        public List<Detail> GetAllDetails()
-        {
-            var details = new List<Detail>();
-
-            foreach (var pair in _details) { details.Add(pair.Value); }
-
-            return details;
-        }
-
-        public void ReplacementPart(Detail newDetail) => _details[newDetail.Type] = newDetail;
-
-        public bool CarIsBroken()
-        {
-            foreach (var pair in _details)
-            {
-                if (pair.Value.IsBroken) { return true; }
+                if (pair.Value.IsBroken)
+                {
+                    return true;
+                }
             }
 
             return false;

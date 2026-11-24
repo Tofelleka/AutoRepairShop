@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using AutoRepairShop.Common;
 
@@ -15,9 +15,15 @@ namespace AutoRepairShop
 
         public CarsQueue(PartsFactory partsFactory, IRandomSource random)
         {
-            if (partsFactory == null) { throw new ArgumentNullException(nameof(partsFactory)); }
+            if (partsFactory == null)
+            {
+                throw new ArgumentNullException(nameof(partsFactory));
+            }
 
-            if (random == null) { throw new ArgumentNullException(nameof(random)); }
+            if (random == null)
+            {
+                throw new ArgumentNullException(nameof(random));
+            }
 
             _random = random;
             _carsQueue = new Queue<Car>();
@@ -25,6 +31,7 @@ namespace AutoRepairShop
         }
 
         public int Count => _carsQueue.Count;
+
         public bool HasCars => Count > 0;
 
         public void AddCars()
