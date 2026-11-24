@@ -17,7 +17,7 @@ namespace AutoRepairShop
 
         public PurchaseReport Buy(DetailType type)
         {
-            if(_partsFactory.GetCatalog().TryGetValue(type, out Detail detail) == false)
+            if (_partsFactory.GetCatalog().TryGetValue(type, out Detail detail) == false)
             {
                 return new PurchaseReport(PurchaseOutcome.UnknownDetail, null);
             }

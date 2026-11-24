@@ -36,24 +36,32 @@ namespace AutoRepairShop
             }
         }
 
-        public Detail TakeDetail(DetailType type)
+        public bool TryTake(DetailType type, out Detail newDetail)
         {
-            var detailOfType = new List<Detail>(_details[type]);
+            newDetail = null;
 
-            int lastIndex = detailOfType.Count - 1;
+            if (_details.TryGetValue(type, out List<Detail> details) == false)
+            {
+                return false;
+            }
 
-            Detail detail = detailOfType[lastIndex];
+            if (details.Count == 0)
+            {
+                return false;
+            }
 
-            detailOfType.RemoveAt(lastIndex);
+            int lastIndex = details.Count - 1;
 
-            return detail;
+            newDetail = details[lastIndex];
+
+            details.RemoveAt(lastIndex);
+
+            return true;
         }
-
-        public bool DetailAvailable(DetailType type) => GetQuantityDetail(type) > 0;
 
         public int GetQuantityDetail(DetailType type)
         {
-            if(_details.TryGetValue(type, out List<Detail> details) == false)
+            if (_details.TryGetValue(type, out List<Detail> details) == false)
             {
                 throw new ArgumentException($"Неизвестный тип детали: {type}.", nameof(type));
             }
@@ -63,22 +71,22 @@ namespace AutoRepairShop
 
         public bool TryAdd(Detail detail)
         {
-            if(detail == null)
+            if (detail == null)
             {
                 throw new ArgumentNullException(nameof(detail));
             }
 
-            if(_details.TryGetValue(detail.Type, out List<Detail> details) == false)
+            if (_details.TryGetValue(detail.Type, out List<Detail> details) == false)
             {
                 return false;
             }
 
-            if(TotalQuantity >= WarehouseCapacity)
+            if (TotalQuantity >= WarehouseCapacity)
             {
                 return false;
             }
 
-            details.Add(detail);    
+            details.Add(detail);
 
             return true;
         }

@@ -42,7 +42,7 @@ namespace AutoRepairShop
 
         public string Name { get; }
 
-        public Dictionary<DetailType, Detail> GetAllDetails() => new Dictionary<DetailType, Detail>();
+        public IReadOnlyDictionary<DetailType, Detail> GetAllDetails() => new Dictionary<DetailType, Detail>(_details);
 
         public void ReplaceDetail(Detail newDetail) => _details[newDetail.Type] = newDetail;
 

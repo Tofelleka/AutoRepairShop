@@ -34,19 +34,15 @@ namespace AutoRepairShop
 
         public DetailRepairReport RepairDetail(DetailType type, Car car)
         {
-            var replacementDetail = car.GetAllDetails()[type];
-
-            if (replacementDetail == null)
+            if (car.GetAllDetails().TryGetValue(type, out Detail replacementDdetail) == false)
             {
                 throw new ArgumentException($"У машины нет детали типа {type}.", nameof(type));
             }
 
-            if (_warehouse.DetailAvailable(type) == false)
+            if (_warehouse.TryTake(type, out Detail newDetail) == false)
             {
                 return new DetailRepairReport(RepairOutcome.NoDetailInStock, 0m, replacementDetail);
             }
-
-            var newDetail = _warehouse.TakeDetail(type);
 
             car.ReplaceDetail(newDetail);
 
@@ -57,7 +53,7 @@ namespace AutoRepairShop
 
             return new DetailRepairReport(RepairOutcome.ReplacedBroken, newDetail.Payout, replacementDetail);
         }
-        
+
         public RepairReport RefuseRepairs() => new RepairReport(0m, FineForCar);
 
         public RepairReport RefuseFurtherRepairs(decimal revenueFromRepair, Car car) =>
