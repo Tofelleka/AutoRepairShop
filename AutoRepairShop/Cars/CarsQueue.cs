@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AutoRepairShop.Common;
+using AutoRepairShop.Factorys;
 
 namespace AutoRepairShop
 {
@@ -10,6 +11,9 @@ namespace AutoRepairShop
         private const int MaxCarsPerDay = 5;
 
         private readonly IRandomSource _random;
+
+        private readonly CarFactory _carFactory;
+
         private readonly Dictionary<DetailType, Detail> _catalog;
         private readonly Queue<Car> _carsQueue;
 
@@ -28,6 +32,7 @@ namespace AutoRepairShop
             _random = random;
             _carsQueue = new Queue<Car>();
             _catalog = partsFactory.GetCatalog();
+            _carFactory = new CarFactory(_catalog, _random);
         }
 
         public int Count => _carsQueue.Count;
@@ -40,7 +45,7 @@ namespace AutoRepairShop
 
             for (int i = 0; i < carsCount; i++)
             {
-                _carsQueue.Enqueue(new Car(_catalog, _random));
+                _carsQueue.Enqueue(_carFactory.GetNewCar());
             }
         }
 

@@ -34,7 +34,7 @@ namespace AutoRepairShop
 
         public DetailRepairReport RepairDetail(DetailType type, Car car)
         {
-            if (car.GetAllDetails().TryGetValue(type, out Detail replacementDdetail) == false)
+            if (car.TryGetDetail(type, out Detail replacementDetail) == false)
             {
                 throw new ArgumentException($"У машины нет детали типа {type}.", nameof(type));
             }

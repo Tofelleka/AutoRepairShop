@@ -43,23 +43,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Factorys\CarFactory.cs" />
     <Compile Include="Game\AutoRepairManager.cs" />
     <Compile Include="UI\Illustrator.cs" />
     <Compile Include="Cars\Car.cs" />
     <Compile Include="Finance\CashRegister.cs" />
     <Compile Include="Repairs\DetailRepairReport.cs" />
-    <Compile Include="Parts\PartsFactory.cs" />
+    <Compile Include="Factorys\PartsFactory.cs" />
     <Compile Include="Parts\Detail.cs" />
     <Compile Include="Parts\DetailsCatalog.cs" />
-    <Compile Include="Parts\DetailType.cs" />
+    <Compile Include="Enums\DetailType.cs" />
     <Compile Include="Repairs\Garage.cs" />
     <Compile Include="Parts\PartsShop.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Cars\CarsQueue.cs" />
-    <Compile Include="Parts\PurchaseOutcome.cs" />
+    <Compile Include="Enums\PurchaseOutcome.cs" />
     <Compile Include="Parts\PurchaseReport.cs" />
-    <Compile Include="Repairs\RepairOutcome.cs" />
+    <Compile Include="Enums\RepairOutcome.cs" />
     <Compile Include="Repairs\RepairReport.cs" />
     <Compile Include="Parts\Warehouse.cs" />
     <Compile Include="Common\IRandomSource.cs" />
