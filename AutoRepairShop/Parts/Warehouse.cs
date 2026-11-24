@@ -36,34 +36,51 @@ namespace AutoRepairShop
             }
         }
 
-        public Detail SendPartToGarage(DetailType type)
+        public Detail TakeDetail(DetailType type)
         {
-            if (_details.TryGetValue(type, out List<Detail> detailOfType) && detailOfType.Count > 0)
-            {
-                int lastIndex = detailOfType.Count - 1;
+            var detailOfType = new List<Detail>(_details[type]);
 
-                Detail detail = detailOfType[lastIndex];
+            int lastIndex = detailOfType.Count - 1;
 
-                detailOfType.RemoveAt(lastIndex);
+            Detail detail = detailOfType[lastIndex];
 
-                return detail;
-            }
+            detailOfType.RemoveAt(lastIndex);
 
-            return null;
+            return detail;
         }
 
-        public int GetQuantityDetail(DetailType type) => _details[type].Count;
+        public bool DetailAvailable(DetailType type) => GetQuantityDetail(type) > 0;
+
+        public int GetQuantityDetail(DetailType type)
+        {
+            if(_details.TryGetValue(type, out List<Detail> details) == false)
+            {
+                throw new ArgumentException($"Неизвестный тип детали: {type}.", nameof(type));
+            }
+
+            return details.Count;
+        }
 
         public bool TryAdd(Detail detail)
         {
-            if (TotalQuantity < WarehouseCapacity)
+            if(detail == null)
             {
-                _details[detail.Type].Add(detail);
-
-                return true;
+                throw new ArgumentNullException(nameof(detail));
             }
 
-            return false;
+            if(_details.TryGetValue(detail.Type, out List<Detail> details) == false)
+            {
+                return false;
+            }
+
+            if(TotalQuantity >= WarehouseCapacity)
+            {
+                return false;
+            }
+
+            details.Add(detail);    
+
+            return true;
         }
 
         private Dictionary<DetailType, List<Detail>> FillDetails()

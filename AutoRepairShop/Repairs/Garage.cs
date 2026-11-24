@@ -19,9 +19,9 @@ namespace AutoRepairShop
                 throw new ArgumentNullException(nameof(car));
             }
 
-            List<Detail> brokenDetails = new List<Detail>();
+            var brokenDetails = new List<Detail>();
 
-            foreach (Detail detail in car.GetAllDetails())
+            foreach (Detail detail in car.GetAllDetails().Values)
             {
                 if (detail.IsBroken)
                 {
@@ -34,52 +34,33 @@ namespace AutoRepairShop
 
         public DetailRepairReport RepairDetail(DetailType type, Car car)
         {
-            var newDetail = _warehouse.SendPartToGarage(type);
+            var replacementDetail = car.GetAllDetails()[type];
 
-            decimal result = 0m;
-
-            var replacementDetail = FindDetailInCar(car, type);
-
-            if (newDetail != null)
+            if (replacementDetail == null)
             {
-                if (replacementDetail != null)
-                {
-                    if (replacementDetail.IsBroken)
-                    {
-                        car.ReplaceDetail(newDetail);
-
-                        result = newDetail.Payout;
-
-                        return new DetailRepairReport(RepairOutcome.ReplacedBroken, result, replacementDetail);
-                    }
-                    else
-                    {
-                        car.ReplaceDetail(newDetail);
-
-                        return new DetailRepairReport(RepairOutcome.ReplacedHealthy, result, replacementDetail);
-                    }
-                }
+                throw new ArgumentException($"У машины нет детали типа {type}.", nameof(type));
             }
 
-            return new DetailRepairReport(RepairOutcome.NoDetailInStock, result, replacementDetail);
-        }
+            if (_warehouse.DetailAvailable(type) == false)
+            {
+                return new DetailRepairReport(RepairOutcome.NoDetailInStock, 0m, replacementDetail);
+            }
 
+            var newDetail = _warehouse.TakeDetail(type);
+
+            car.ReplaceDetail(newDetail);
+
+            if (replacementDetail.IsBroken == false)
+            {
+                return new DetailRepairReport(RepairOutcome.ReplacedHealthy, 0m, replacementDetail);
+            }
+
+            return new DetailRepairReport(RepairOutcome.ReplacedBroken, newDetail.Payout, replacementDetail);
+        }
+        
         public RepairReport RefuseRepairs() => new RepairReport(0m, FineForCar);
 
         public RepairReport RefuseFurtherRepairs(decimal revenueFromRepair, Car car) =>
             new RepairReport(revenueFromRepair, FineForDetail * DiagnoseFaultyParts(car).Count);
-
-        private Detail FindDetailInCar(Car car, DetailType type)
-        {
-            foreach (Detail detail in car.GetAllDetails())
-            {
-                if (detail.Type == type)
-                {
-                    return detail;
-                }
-            }
-
-            return null;
-        }
     }
 }

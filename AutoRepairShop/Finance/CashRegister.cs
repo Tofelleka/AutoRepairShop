@@ -1,23 +1,27 @@
-﻿namespace AutoRepairShop
+﻿using System;
+
+namespace AutoRepairShop
 {
     internal class CashRegister
     {
-        public CashRegister() => Money = 10000m;
+        private const decimal StartMoney = 10000m;
+
+        public CashRegister() => Money = StartMoney;
 
         public decimal Money { get; private set; }
 
-        public void Apply(RepairReport report) => Money += report.Total;
+        public bool CanAfford(decimal amount) => Money >= amount;
 
-        public bool TryPay(decimal price)
+        public void Apply(decimal amount) => Money += amount;
+
+        public void Pay(decimal amount)
         {
-            if (price <= Money)
+            if (CanAfford(amount) == false)
             {
-                Money -= price;
-
-                return true;
+                throw new InvalidOperationException("В кассе недостаточно денег.");
             }
 
-            return false;
+            Money -= amount;
         }
     }
 }

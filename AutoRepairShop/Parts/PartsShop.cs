@@ -1,4 +1,6 @@
-﻿namespace AutoRepairShop
+﻿using System.Collections.Generic;
+
+namespace AutoRepairShop
 {
     internal class PartsShop
     {
@@ -15,24 +17,24 @@
 
         public PurchaseReport Buy(DetailType type)
         {
-            if (_partsFactory.GetCatalog().TryGetValue(type, out Detail detail))
+            if(_partsFactory.GetCatalog().TryGetValue(type, out Detail detail) == false)
             {
-                if (_cashRegister.Money < detail.Price)
-                {
-                    return new PurchaseReport(PurchaseOutcome.NotEnoughMoney, detail);
-                }
-
-                if (_warehouse.TryAdd(detail) == false)
-                {
-                    return new PurchaseReport(PurchaseOutcome.WarehouseIsFull, detail);
-                }
-
-                _cashRegister.TryPay(detail.Price);
-
-                return new PurchaseReport(PurchaseOutcome.Bought, detail);
+                return new PurchaseReport(PurchaseOutcome.UnknownDetail, null);
             }
 
-            return new PurchaseReport(PurchaseOutcome.UnknownDetail, null);
+            if (_cashRegister.CanAfford(detail.Price) == false)
+            {
+                return new PurchaseReport(PurchaseOutcome.NotEnoughMoney, detail);
+            }
+
+            if (_warehouse.TryAdd(detail) == false)
+            {
+                return new PurchaseReport(PurchaseOutcome.WarehouseIsFull, detail);
+            }
+
+            _cashRegister.Pay(detail.Price);
+
+            return new PurchaseReport(PurchaseOutcome.Bought, detail);
         }
     }
 }

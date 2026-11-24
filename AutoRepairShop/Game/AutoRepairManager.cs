@@ -90,7 +90,7 @@ namespace AutoRepairShop
                 ? RepairCar(car)
                 : _garage.RefuseRepairs();
 
-            _cashRegister.Apply(report);
+            _cashRegister.Apply(report.Total);
 
             _illustrator.ShowRepairReport(report, _cashRegister.Money);
             _illustrator.Pause();
