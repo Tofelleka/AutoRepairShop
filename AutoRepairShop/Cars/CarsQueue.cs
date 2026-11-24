@@ -43,7 +43,7 @@ namespace AutoRepairShop
 
             for (int i = 0; i < carsCount; i++)
             {
-                _carsQueue.Enqueue(_carFactory.GetNewCar());
+                _carsQueue.Enqueue(_carFactory.Create());
             }
         }
 

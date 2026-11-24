@@ -6,9 +6,9 @@ namespace AutoRepairShop
     {
         private readonly Dictionary<DetailType, Detail> _storeCatalog;
 
-        public PartsFactory() => _storeCatalog = new Dictionary<DetailType, Detail>(DetailsCatalog.GetDetailsCatalog());
+        public PartsFactory() => _storeCatalog = new Dictionary<DetailType, Detail>(DetailsCatalog.Catalog.Count);
 
-        public Detail CreateNewDetail(DetailType type)
+        public Detail Create(DetailType type)
         {
             Detail detail = _storeCatalog[type];
 

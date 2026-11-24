@@ -7,18 +7,23 @@ namespace AutoRepairShop
     {
         public const int WarehouseCapacity = 60;
 
-        private readonly PartsFactory _partsFactory;
         private readonly Dictionary<DetailType, List<Detail>> _details;
 
-        public Warehouse(PartsFactory partsFactory)
+        public Warehouse(Dictionary<DetailType, List<Detail>> details)
         {
-            if (partsFactory == null)
+            if (details == null)
             {
-                throw new ArgumentNullException(nameof(partsFactory));
+                throw new ArgumentNullException(nameof(details));
             }
 
-            _partsFactory = partsFactory;
-            _details = FillDetails();
+            _details = details;
+
+            if (TotalQuantity > WarehouseCapacity)
+            {
+                throw new ArgumentException(
+                    $"Начальный запас больше вместимости склада: {TotalQuantity} из {WarehouseCapacity}.",
+                    nameof(details));
+            }
         }
 
         public int TotalQuantity
@@ -89,29 +94,6 @@ namespace AutoRepairShop
             details.Add(detail);
 
             return true;
-        }
-
-        private Dictionary<DetailType, List<Detail>> FillDetails()
-        {
-            var details = new Dictionary<DetailType, List<Detail>>(Enum.GetValues(typeof(DetailType)).Length);
-
-            const int initialQuantityDetails = 2;
-
-            foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
-            {
-                var tempDetails = new List<Detail>(initialQuantityDetails);
-
-                for (int i = 0; i < initialQuantityDetails; i++)
-                {
-                    Detail newDetail = _partsFactory.CreateNewDetail(type);
-
-                    tempDetails.Add(newDetail);
-                }
-
-                details[type] = tempDetails;
-            }
-
-            return details;
         }
     }
 }

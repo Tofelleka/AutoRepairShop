@@ -12,6 +12,8 @@ namespace AutoRepairShop
         private readonly Warehouse _warehouse;
         private readonly Garage _garage;
         private readonly CashRegister _cashRegister;
+        private readonly CarFactory _carFactory;
+        private readonly WarehouseFactory _warehouseFactory;
 
         public AutoRepairManager(Illustrator illustrator)
         {
@@ -25,8 +27,10 @@ namespace AutoRepairShop
             _partsFactory = new PartsFactory();
             _cashRegister = new CashRegister();
             _carsQueue = new CarsQueue(_partsFactory, random);
-            _warehouse = new Warehouse(_partsFactory);
+            _warehouseFactory = new WarehouseFactory(_partsFactory);
+            _warehouse = _warehouseFactory.Create();
             _garage = new Garage(_warehouse);
+            _carFactory = new CarFactory(_partsFactory.GetCatalog(), random);   
             _partsShop = new PartsShop(_partsFactory, _warehouse, _cashRegister);
         }
 

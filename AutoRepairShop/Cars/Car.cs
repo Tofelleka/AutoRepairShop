@@ -7,9 +7,19 @@ namespace AutoRepairShop
     {
         private readonly Dictionary<DetailType, Detail> _details;
 
-        public Car(string name, Dictionary<DetailType, Detail> partsList)
+        public Car(string name, Dictionary<DetailType, Detail> details)
         {
-            _details = partsList;
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException("Название машины не может быть пустым.", nameof(name));
+            }
+
+            if (details == null)
+            {
+                throw new ArgumentNullException(nameof(details));
+            }
+
+            _details = details;
             Name = name;
         }
 

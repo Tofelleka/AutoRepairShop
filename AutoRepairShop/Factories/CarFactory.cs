@@ -3,30 +3,13 @@ using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
-    internal class CarNames
-    {
-        public IReadOnlyList<string> AllNames = new List<string>
-        {
-            "ВАЗ - 2108",
-            "ВАЗ - 2109",
-            "ВАЗ - 21091",
-            "ВАЗ - 21093",
-            "ВАЗ - 21093i",
-            "ВАЗ - 2113",
-            "ВАЗ - 2114",
-            "ВАЗ - 2115"
-        };
-    }
-
     internal class CarFactory
     {
         private const double DefaultBreakdownChance = 0.3;
 
         private readonly IRandomSource _random;
 
-        private readonly CarNames _carNames;
-
-        Dictionary<DetailType, Detail> _partsCatalog;
+        private readonly IReadOnlyDictionary<DetailType, Detail> _partsCatalog;
 
         public CarFactory(Dictionary<DetailType, Detail> partsCatalog, IRandomSource random)
         {
@@ -40,24 +23,11 @@ namespace AutoRepairShop
                 throw new ArgumentNullException(nameof(random));
             }
 
-            _carNames = new CarNames();
             _random = random;
             _partsCatalog = partsCatalog;
         }
 
-        public Car GetNewCar()
-        {
-            Car car = new Car(GetRandomName(), FillDetails());
-
-            if(car == null)
-            {
-                throw new ArgumentNullException("Машина пуста");
-            }
-
-            return car;
-        }
-
-        private string GetRandomName() => _carNames.AllNames[_random.Next(0, _carNames.AllNames.Count)];
+        public Car Create() => new Car(CarNames.AllNames[_random.Next(0, CarNames.AllNames.Count)], FillDetails());
 
         private Dictionary<DetailType, Detail> FillDetails()
         {
@@ -94,7 +64,7 @@ namespace AutoRepairShop
             return details;
         }
 
-        private static bool HasBrokenDetail(Dictionary<DetailType, Detail> details)
+        private bool HasBrokenDetail(Dictionary<DetailType, Detail> details)
         {
             foreach (var pair in details)
             {

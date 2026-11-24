@@ -43,13 +43,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Factorys\CarFactory.cs" />
+    <Compile Include="Factories\CarFactory.cs" />
+    <Compile Include="Factories\CarNames.cs" />
+    <Compile Include="Factories\WarehouseFactory.cs" />
     <Compile Include="Game\AutoRepairManager.cs" />
     <Compile Include="UI\Illustrator.cs" />
     <Compile Include="Cars\Car.cs" />
     <Compile Include="Finance\CashRegister.cs" />
     <Compile Include="Repairs\DetailRepairReport.cs" />
-    <Compile Include="Factorys\PartsFactory.cs" />
+    <Compile Include="Factories\PartsFactory.cs" />
     <Compile Include="Parts\Detail.cs" />
     <Compile Include="Parts\DetailsCatalog.cs" />
     <Compile Include="Enums\DetailType.cs" />
