@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AutoRepairShop.Common;
-using AutoRepairShop.UI;
 
 namespace AutoRepairShop
 {

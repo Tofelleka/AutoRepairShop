@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace AutoRepairShop.UI
+namespace AutoRepairShop
 {
     public enum DayCommand
     {

@@ -1,4 +1,4 @@
-﻿namespace AutoRepairShop.Common
+﻿namespace AutoRepairShop
 {
     public interface IRandomSource
     {

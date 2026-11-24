@@ -1,5 +1,3 @@
-using AutoRepairShop.UI;
-
 namespace AutoRepairShop
 {
     internal class Program
