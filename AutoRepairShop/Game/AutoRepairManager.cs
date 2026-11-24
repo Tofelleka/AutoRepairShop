@@ -12,8 +12,6 @@ namespace AutoRepairShop
         private readonly Warehouse _warehouse;
         private readonly Garage _garage;
         private readonly CashRegister _cashRegister;
-        private readonly CarFactory _carFactory;
-        private readonly WarehouseFactory _warehouseFactory;
 
         public AutoRepairManager(Illustrator illustrator)
         {
@@ -23,14 +21,18 @@ namespace AutoRepairShop
             }
 
             _illustrator = illustrator;
+
             IRandomSource random = new SystemRandomSource();
-            _partsFactory = new PartsFactory();
+
+            _partsFactory = new PartsFactory(DetailsCatalog.Catalog);
             _cashRegister = new CashRegister();
-            _carsQueue = new CarsQueue(_partsFactory, random);
-            _warehouseFactory = new WarehouseFactory(_partsFactory);
-            _warehouse = _warehouseFactory.Create();
+
+            var carFactory = new CarFactory(DetailsCatalog.Catalog, random);
+            var warehouseFactory = new WarehouseFactory(_partsFactory);
+
+            _carsQueue = new CarsQueue(carFactory, random);
+            _warehouse = warehouseFactory.Create();
             _garage = new Garage(_warehouse);
-            _carFactory = new CarFactory(_partsFactory.GetCatalog(), random);   
             _partsShop = new PartsShop(_partsFactory, _warehouse, _cashRegister);
         }
 
@@ -156,7 +158,7 @@ namespace AutoRepairShop
         private List<StockItem> BuildStockItems()
         {
             var items = new List<StockItem>();
-            var catalog = _partsFactory.GetCatalog();
+            var catalog = _partsFactory.GetAll();
 
             foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
             {

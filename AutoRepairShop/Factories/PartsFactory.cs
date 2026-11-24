@@ -1,20 +1,32 @@
+using System;
 using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
     internal class PartsFactory
     {
-        private readonly Dictionary<DetailType, Detail> _storeCatalog;
+        private readonly IReadOnlyDictionary<DetailType, Detail> _catalog;
 
-        public PartsFactory() => _storeCatalog = new Dictionary<DetailType, Detail>(DetailsCatalog.Catalog.Count);
+        public PartsFactory(IReadOnlyDictionary<DetailType, Detail> catalog)
+        {
+            if (catalog == null)
+            {
+                throw new ArgumentNullException(nameof(catalog));
+            }
+
+            _catalog = catalog;
+        }
 
         public Detail Create(DetailType type)
         {
-            Detail detail = _storeCatalog[type];
+            if (_catalog.TryGetValue(type, out Detail sample) == false)
+            {
+                throw new ArgumentException($"Неизвестный тип детали: {type}.", nameof(type));
+            }
 
-            return new Detail(detail.Type, detail.Description, detail.Name, detail.Price, detail.ReplacementCost);
+            return new Detail(sample.Type, sample.Description, sample.Name, sample.Price, sample.ReplacementCost);
         }
 
-        public Dictionary<DetailType, Detail> GetCatalog() => new Dictionary<DetailType, Detail>(_storeCatalog);
+        public IReadOnlyDictionary<DetailType, Detail> GetAll() => _catalog;
     }
 }

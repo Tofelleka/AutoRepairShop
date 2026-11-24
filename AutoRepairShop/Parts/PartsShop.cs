@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System;
 
 namespace AutoRepairShop
 {
@@ -10,6 +10,21 @@ namespace AutoRepairShop
 
         public PartsShop(PartsFactory partsFactory, Warehouse warehouse, CashRegister cashRegister)
         {
+            if (partsFactory == null)
+            {
+                throw new ArgumentNullException(nameof(partsFactory));
+            }
+
+            if (warehouse == null)
+            {
+                throw new ArgumentNullException(nameof(warehouse));
+            }
+
+            if (cashRegister == null)
+            {
+                throw new ArgumentNullException(nameof(cashRegister));
+            }
+
             _partsFactory = partsFactory;
             _warehouse = warehouse;
             _cashRegister = cashRegister;
@@ -17,10 +32,12 @@ namespace AutoRepairShop
 
         public PurchaseReport Buy(DetailType type)
         {
-            if (_partsFactory.GetCatalog().TryGetValue(type, out Detail detail) == false)
+            if (_partsFactory.GetAll().ContainsKey(type) == false)
             {
                 return new PurchaseReport(PurchaseOutcome.UnknownDetail, null);
             }
+
+            Detail detail = _partsFactory.Create(type);
 
             if (_cashRegister.CanAfford(detail.Price) == false)
             {

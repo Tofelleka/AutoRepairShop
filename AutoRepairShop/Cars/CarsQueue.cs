@@ -8,18 +8,15 @@ namespace AutoRepairShop
         private const int MinCarsPerDay = 1;
         private const int MaxCarsPerDay = 5;
 
-        private readonly IRandomSource _random;
-
         private readonly CarFactory _carFactory;
-
-        private readonly Dictionary<DetailType, Detail> _catalog;
+        private readonly IRandomSource _random;
         private readonly Queue<Car> _carsQueue;
 
-        public CarsQueue(PartsFactory partsFactory, IRandomSource random)
+        public CarsQueue(CarFactory carFactory, IRandomSource random)
         {
-            if (partsFactory == null)
+            if (carFactory == null)
             {
-                throw new ArgumentNullException(nameof(partsFactory));
+                throw new ArgumentNullException(nameof(carFactory));
             }
 
             if (random == null)
@@ -27,10 +24,9 @@ namespace AutoRepairShop
                 throw new ArgumentNullException(nameof(random));
             }
 
+            _carFactory = carFactory;
             _random = random;
             _carsQueue = new Queue<Car>();
-            _catalog = partsFactory.GetCatalog();
-            _carFactory = new CarFactory(_catalog, _random);
         }
 
         public int Count => _carsQueue.Count;

@@ -10,7 +10,15 @@ namespace AutoRepairShop
 
         private readonly Warehouse _warehouse;
 
-        public Garage(Warehouse warehouse) => _warehouse = warehouse;
+        public Garage(Warehouse warehouse)
+        {
+            if (warehouse == null)
+            {
+                throw new ArgumentNullException(nameof(warehouse));
+            }
+
+            _warehouse = warehouse;
+        }
 
         public List<Detail> DiagnoseFaultyParts(Car car)
         {

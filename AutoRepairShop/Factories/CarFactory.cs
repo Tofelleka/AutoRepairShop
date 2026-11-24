@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace AutoRepairShop
@@ -8,14 +8,13 @@ namespace AutoRepairShop
         private const double DefaultBreakdownChance = 0.3;
 
         private readonly IRandomSource _random;
+        private readonly IReadOnlyDictionary<DetailType, Detail> _catalog;
 
-        private readonly IReadOnlyDictionary<DetailType, Detail> _partsCatalog;
-
-        public CarFactory(Dictionary<DetailType, Detail> partsCatalog, IRandomSource random)
+        public CarFactory(IReadOnlyDictionary<DetailType, Detail> catalog, IRandomSource random)
         {
-            if (partsCatalog == null)
+            if (catalog == null)
             {
-                throw new ArgumentNullException(nameof(partsCatalog));
+                throw new ArgumentNullException(nameof(catalog));
             }
 
             if (random == null)
@@ -23,22 +22,32 @@ namespace AutoRepairShop
                 throw new ArgumentNullException(nameof(random));
             }
 
+            _catalog = catalog;
             _random = random;
-            _partsCatalog = partsCatalog;
         }
 
-        public Car Create() => new Car(CarNames.AllNames[_random.Next(0, CarNames.AllNames.Count)], FillDetails());
+        public Car Create()
+        {
+            if (_catalog.Count == 0)
+            {
+                throw new InvalidOperationException("Каталог деталей пуст.");
+            }
+
+            if (CarNames.AllNames.Count == 0)
+            {
+                throw new InvalidOperationException("Список названий машин пуст.");
+            }
+
+            string name = CarNames.AllNames[_random.Next(0, CarNames.AllNames.Count)];
+
+            return new Car(name, FillDetails());
+        }
 
         private Dictionary<DetailType, Detail> FillDetails()
         {
             var details = new Dictionary<DetailType, Detail>();
 
-            if (_partsCatalog.Count == 0)
-            {
-                throw new InvalidOperationException("Каталог деталей пуст");
-            }
-
-            foreach (var pair in _partsCatalog)
+            foreach (var pair in _catalog)
             {
                 var detail = new Detail(pair.Value.Type,
                     pair.Value.Description,
@@ -64,7 +73,7 @@ namespace AutoRepairShop
             return details;
         }
 
-        private bool HasBrokenDetail(Dictionary<DetailType, Detail> details)
+        private static bool HasBrokenDetail(Dictionary<DetailType, Detail> details)
         {
             foreach (var pair in details)
             {
