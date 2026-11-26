@@ -4,8 +4,12 @@ namespace AutoRepairShop
 {
     internal static class CarNames
     {
-        public static IReadOnlyList<string> AllNames { get; } = new List<string>
+        public static IReadOnlyList<string> AllNames { get; } = CreateAllName();
+
+        private static List<string> CreateAllName()
         {
+            return new List<string>
+            {
             "ВАЗ - 2108",
             "ВАЗ - 2109",
             "ВАЗ - 21091",
@@ -14,6 +18,7 @@ namespace AutoRepairShop
             "ВАЗ - 2113",
             "ВАЗ - 2114",
             "ВАЗ - 2115"
-        };
+            };
+        }
     }
 }

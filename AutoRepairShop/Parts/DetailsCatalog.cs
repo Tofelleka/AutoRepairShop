@@ -4,8 +4,12 @@ namespace AutoRepairShop
 {
     internal static class DetailsCatalog
     {
-        public static IReadOnlyDictionary<DetailType, Detail> Catalog { get; } = new Dictionary<DetailType, Detail>
+        public static IReadOnlyDictionary<DetailType, Detail> Catalog { get; } = CreateCatalog();
+
+        private static Dictionary<DetailType, Detail> CreateCatalog()
         {
+            return new Dictionary<DetailType, Detail>
+            {
             { DetailType.FuelPump, new Detail(DetailType.FuelPump, "Бензонасосы на Самарах часто перегревались и выходили из строя.", "Топливный насос", 2500m, 800m) },
             { DetailType.SparkPlugs, new Detail(DetailType.SparkPlugs, "Их регулярно заливало (особенно на карбюраторе) или они просто прогорали.", "Свечи зажигания", 600m, 200m) },
             { DetailType.Starter, new Detail(DetailType.Starter, "Втягивающее реле или сам стартер быстро изнашивались.", "Стартер", 4500m, 1200m) },
@@ -16,6 +20,7 @@ namespace AutoRepairShop
             { DetailType.Clutch, new Detail(DetailType.Clutch, "Сцепление меняли довольно часто (работа дорогая, лезть в коробку сложно).", "Сцепление", 3000m, 3500m) },
             { DetailType.RearWheelHubBearings, new Detail(DetailType.RearWheelHubBearings, "В задних колесах они гудели после 70-75 тыс. км.", "Задние ступичные подшипники", 2400m, 1600m) },
             { DetailType.FrontWheelHubBearings, new Detail(DetailType.FrontWheelHubBearings, "В передних колесах они гудели после 50-60 тыс. км.", "Передние ступичные подшипники", 2400m, 1600m) }
-        };
+            }
+        }
     }
 }
