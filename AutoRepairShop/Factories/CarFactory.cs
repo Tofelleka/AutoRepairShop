@@ -6,59 +6,53 @@ namespace AutoRepairShop
 {
     internal class CarFactory
     {
-        private const double DefaultBreakdownChance = 0.3;
+        private const double RepairOptionChance = 0.4d;
 
         private readonly IRandomSource _random;
-        private readonly IReadOnlyDictionary<DetailType, Detail> _catalog;
 
-        public CarFactory(IReadOnlyDictionary<DetailType, Detail> catalog, IRandomSource random)
+        public CarFactory(IRandomSource random)
         {
-            if (catalog == null)
-            {
-                throw new ArgumentNullException(nameof(catalog));
-            }
-
             if (random == null)
             {
                 throw new ArgumentNullException(nameof(random));
             }
 
-            _catalog = catalog;
             _random = random;
         }
 
-        public Car Create()
+        public Car Create(CarBrand brand)
         {
-            if (_catalog.Count == 0)
-            {
-                throw new InvalidOperationException("Каталог деталей пуст.");
-            }
+            List<string> names = new List<string>(CarNames.GetNames(brand));
 
-            if (CarNames.AllNames.Count == 0)
+            if (names.Count == 0)
             {
                 throw new InvalidOperationException("Список названий машин пуст.");
             }
 
-            string name = CarNames.AllNames[_random.Next(0, CarNames.AllNames.Count)];
-
-            return new Car(name, FillDetails());
-        }
-
-        private Dictionary<DetailType, Detail> FillDetails()
-        {
             var details = new Dictionary<DetailType, Detail>();
+            string name = names[_random.Next(0, names.Count)];
 
-            foreach (var pair in _catalog)
+            foreach (PartTemplate template in DetailsCatalog.GetTemplatesFor(brand, name))
             {
-                var detail = new Detail(pair.Value.Type,
-                    pair.Value.Description,
-                    pair.Value.Name,
-                    pair.Value.Price,
-                    pair.Value.ReplacementCost);
+                if (template.Category == PartCategory.Material)
+                {
+                    continue;
+                }
 
-                if (_random.NextChance(DefaultBreakdownChance))
+                Brand partBrand = DetailsCatalog.Brands[_random.Next(0, DetailsCatalog.Brands.Count)];
+                var detail = new Detail(template, partBrand);
+
+                double baseChance = template.FaultChance ?? GetBaseChance(template.Category);
+                double chance = baseChance * partBrand.FaultFactor;
+
+                if (_random.NextChance(chance))
                 {
                     detail.BrokeDetail();
+
+                    if (DetailsCatalog.CanRepair(template.Type) && _random.NextChance(RepairOptionChance))
+                    {
+                        detail.MarkRepairable();
+                    }
                 }
 
                 details[detail.Type] = detail;
@@ -66,12 +60,30 @@ namespace AutoRepairShop
 
             if (details.Values.Any(detail => detail.IsBroken) == false)
             {
-                Detail randomDetail = details.Values.ElementAt(_random.Next(0, details.Count));
+                var types = new List<DetailType>(details.Keys);
 
-                randomDetail.BrokeDetail();
+                details[types[_random.Next(0, types.Count)]].BrokeDetail();
             }
 
-            return details;
+            return new Car(brand, name, details);
+        }
+
+        private static double GetBaseChance(PartCategory category)
+        {
+            switch (category)
+            {
+                case PartCategory.Engine:
+                    return 0.20d;
+
+                case PartCategory.Body:
+                    return 0.12d;
+
+                case PartCategory.Electric:
+                    return 0.10d;
+
+                default:
+                    return 0.12d;
+            }
         }
     }
 }

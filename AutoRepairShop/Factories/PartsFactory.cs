@@ -1,32 +1,21 @@
 using System;
-using System.Collections.Generic;
 
 namespace AutoRepairShop
 {
     internal class PartsFactory
     {
-        private readonly IReadOnlyDictionary<DetailType, Detail> _catalog;
-
-        public PartsFactory(IReadOnlyDictionary<DetailType, Detail> catalog)
+        public Detail Create(DetailType type, Brand brand)
         {
-            if (catalog == null)
+            if (brand == null)
             {
-                throw new ArgumentNullException(nameof(catalog));
+                throw new ArgumentNullException(nameof(brand));
             }
 
-            _catalog = catalog;
+            PartTemplate template = DetailsCatalog.GetTemplate(type);
+
+            return new Detail(template, brand);
         }
 
-        public Detail Create(DetailType type)
-        {
-            if (_catalog.TryGetValue(type, out Detail sample) == false)
-            {
-                throw new ArgumentException($"Неизвестный тип детали: {type}.", nameof(type));
-            }
-
-            return new Detail(sample.Type, sample.Description, sample.Name, sample.Price, sample.ReplacementCost);
-        }
-
-        public IReadOnlyDictionary<DetailType, Detail> GetAll() => _catalog;
+        public Detail Create(DetailType type) => Create(type, DetailsCatalog.StandardBrand);
     }
 }

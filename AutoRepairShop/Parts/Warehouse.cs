@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,6 +6,8 @@ namespace AutoRepairShop
 {
     internal class Warehouse
     {
+        public const int DefaultCapacity = 150;
+
         private readonly Dictionary<DetailType, List<Detail>> _details;
 
         public Warehouse(Dictionary<DetailType, List<Detail>> details, int capacity)

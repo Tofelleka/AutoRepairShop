@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="AutoRepairShop/AutoRepairShop.csproj" Id="b2242219-4b88-4893-9620-998e43ca772c" />
+  <Project Path="AutoRepairShop.Tests/AutoRepairShop.Tests.csproj" Id="7a1f3c24-8e5b-4b7d-9c61-2f0d4e5a6b71" />
 </Solution>

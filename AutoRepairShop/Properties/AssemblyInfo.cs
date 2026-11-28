@@ -1,6 +1,9 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+// Тестовый проект видит internal-типы основной сборки.
+[assembly: InternalsVisibleTo("AutoRepairShop.Tests")]
 
 // Общие сведения об этой сборке предоставляются следующим набором
 // набора атрибутов. Измените значения этих атрибутов для изменения сведений,

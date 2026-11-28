@@ -1,25 +1,90 @@
+using System;
+
 namespace AutoRepairShop
 {
     internal class Detail
     {
-        public Detail(DetailType type, string description, string name, decimal price, decimal replacementCost)
+        private const decimal RepairWorkFactor = 0.6m;
+
+        public Detail(PartTemplate template, Brand brand)
         {
-            Type = type;
-            Description = description;
-            Name = name;
-            Price = price;
-            ReplacementCost = replacementCost;
-            IsBroken = false;
+            if (template == null)
+            {
+                throw new ArgumentNullException(nameof(template));
+            }
+
+            if (brand == null)
+            {
+                throw new ArgumentNullException(nameof(brand));
+            }
+
+            Type = template.Type;
+            Category = template.Category;
+            Name = template.Name;
+            Description = template.Description;
+            BrandName = brand.Name;
+            FaultFactor = brand.FaultFactor;
+            Price = template.GetPrice(brand);
+            ReplacementCost = template.GetWork(brand);
+            ExtraWork = template.ExtraWork;
         }
 
         public DetailType Type { get; }
+
+        public PartCategory Category { get; }
+
         public string Name { get; }
+
         public string Description { get; }
+
+        public string BrandName { get; }
+
+        public double FaultFactor { get; }
+
         public decimal Price { get; }
+
         public decimal ReplacementCost { get; }
+
         public bool IsBroken { get; private set; }
-        public decimal Payout => Price + ReplacementCost;
+
+        public bool IsRepairable { get; private set; }
+
+        public decimal ExtraWork { get; }
+
+        public decimal Payout => GetPayout(1m);
+
+        public decimal GetPayout(decimal workRate)
+        {
+            if (workRate < 0m)
+            {
+                throw new ArgumentOutOfRangeException(nameof(workRate), "Коэффициент работы не может быть отрицательным.");
+            }
+
+            decimal work = Math.Round(ReplacementCost * workRate, 0, MidpointRounding.AwayFromZero);
+
+            return Price + work + ExtraWork;
+        }
+
+        public decimal GetRepairCharge(decimal workRate)
+        {
+            if (workRate < 0m)
+            {
+                throw new ArgumentOutOfRangeException(nameof(workRate), "Коэффициент работы не может быть отрицательным.");
+            }
+
+            decimal work = Math.Round(ReplacementCost * RepairWorkFactor * workRate, 0, MidpointRounding.AwayFromZero);
+
+            return work + ExtraWork;
+        }
 
         public void BrokeDetail() => IsBroken = true;
+
+        public void MarkRepairable() => IsRepairable = true;
+
+        public void Repair()
+        {
+            IsBroken = false;
+            IsRepairable = false;
+        }
     }
 }

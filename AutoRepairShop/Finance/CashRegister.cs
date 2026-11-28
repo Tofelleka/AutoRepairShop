@@ -1,12 +1,24 @@
-﻿using System;
+using System;
 
 namespace AutoRepairShop
 {
     internal class CashRegister
     {
-        private const decimal StartMoney = 10000m;
+        public const decimal StartMoney = 100_000m;
 
-        public CashRegister() => Money = StartMoney;
+        public CashRegister() : this(StartMoney)
+        {
+        }
+
+        public CashRegister(decimal startMoney)
+        {
+            if (startMoney < 0m)
+            {
+                throw new ArgumentOutOfRangeException(nameof(startMoney), "Начальная сумма не может быть отрицательной.");
+            }
+
+            Money = startMoney;
+        }
 
         public decimal Money { get; private set; }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AutoRepairShop
 {
@@ -8,7 +7,7 @@ namespace AutoRepairShop
     {
         private readonly Dictionary<DetailType, Detail> _details;
 
-        public Car(string name, Dictionary<DetailType, Detail> details)
+        public Car(CarBrand brand, string name, IReadOnlyDictionary<DetailType, Detail> details)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -20,18 +19,45 @@ namespace AutoRepairShop
                 throw new ArgumentNullException(nameof(details));
             }
 
-            _details = details;
+            Brand = brand;
             Name = name;
+            _details = new Dictionary<DetailType, Detail>(details.Count);
+
+            foreach (KeyValuePair<DetailType, Detail> pair in details)
+            {
+                _details[pair.Key] = pair.Value;
+            }
         }
+
+        public CarBrand Brand { get; }
 
         public string Name { get; }
 
-        public IReadOnlyList<Detail> GetAllDetails() => _details.Values.ToList();
+        public IReadOnlyList<Detail> GetAllDetails() => new List<Detail>(_details.Values);
+
+        public bool CarIsBroken()
+        {
+            foreach (Detail detail in _details.Values)
+            {
+                if (detail.IsBroken)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public bool TryGetDetail(DetailType type, out Detail detail) => _details.TryGetValue(type, out detail);
 
-        public void ReplaceDetail(Detail newDetail) => _details[newDetail.Type] = newDetail;
+        public void ReplaceDetail(Detail detail)
+        {
+            if (detail == null)
+            {
+                throw new ArgumentNullException(nameof(detail));
+            }
 
-        public bool CarIsBroken() => _details.Values.Any(detail => detail.IsBroken);
+            _details[detail.Type] = detail;
+        }
     }
 }

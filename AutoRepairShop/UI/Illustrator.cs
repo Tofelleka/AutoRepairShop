@@ -10,20 +10,92 @@ namespace AutoRepairShop
         EndDay = 0,
         TakeCar = 1,
         Shop = 2,
-        Development = 3
+        Development = 3,
+        Achievements = 4,
+        Courses = 5
     }
 
     internal class StockItem
     {
-        public StockItem(Detail detail, int quantity)
+        public StockItem(PartTemplate template, int quantity)
         {
-            Detail = detail;
+            Template = template;
             Quantity = quantity;
         }
 
-        public Detail Detail { get; }
+        public PartTemplate Template { get; }
 
         public int Quantity { get; }
+    }
+
+    internal class UpgradeOffer
+    {
+        public UpgradeOffer(
+            UpgradeType type,
+            string name,
+            string effectDescription,
+            int level,
+            int maxLevel,
+            decimal price,
+            bool canUpgrade)
+        {
+            Type = type;
+            Name = name;
+            EffectDescription = effectDescription;
+            Level = level;
+            MaxLevel = maxLevel;
+            Price = price;
+            CanUpgrade = canUpgrade;
+        }
+
+        public UpgradeType Type { get; }
+
+        public string Name { get; }
+
+        public string EffectDescription { get; }
+
+        public int Level { get; }
+
+        public int MaxLevel { get; }
+
+        public decimal Price { get; }
+
+        public bool CanUpgrade { get; }
+    }
+
+    internal class CourseOffer
+    {
+        public CourseOffer(
+            CourseType type,
+            string name,
+            string brandName,
+            decimal requiredEarned,
+            decimal price,
+            bool isPassed,
+            bool isAvailable)
+        {
+            Type = type;
+            Name = name;
+            BrandName = brandName;
+            RequiredEarned = requiredEarned;
+            Price = price;
+            IsPassed = isPassed;
+            IsAvailable = isAvailable;
+        }
+
+        public CourseType Type { get; }
+
+        public string Name { get; }
+
+        public string BrandName { get; }
+
+        public decimal RequiredEarned { get; }
+
+        public decimal Price { get; }
+
+        public bool IsPassed { get; }
+
+        public bool IsAvailable { get; }
     }
 
     internal class Illustrator
@@ -39,6 +111,8 @@ namespace AutoRepairShop
         private const int TakeCarCommand = 1;
         private const int ShopCommand = 2;
         private const int DevelopmentCommand = 3;
+        private const int AchievementsCommand = 4;
+        private const int CoursesCommand = 5;
 
         public Illustrator()
         {
@@ -51,7 +125,7 @@ namespace AutoRepairShop
             }
         }
 
-        public void ShowBanner(decimal startMoney)
+        public void ShowBanner(decimal startMoney, GameGoal goal, int day, bool isSaveLoaded)
         {
             Clear();
 
@@ -60,17 +134,213 @@ namespace AutoRepairShop
             DoubleRow(Center("АВТОСЕРВИС"), ConsoleColor.Cyan);
             DoubleRow(Center("«ГАРАЖ НАРОДНЫЙ»"), ConsoleColor.Cyan);
             DoubleRow(string.Empty, ConsoleColor.Gray);
+            DoubleRow(Center("цель: " + goal.Title + " за " + Money(goal.TargetMoney)), ConsoleColor.White);
             DoubleRow(Center("денег на руках: " + Money(startMoney)), ConsoleColor.White);
             DoubleRow(Center("одна команда — одна деталь"), ConsoleColor.DarkGray);
+
+            if (isSaveLoaded)
+            {
+                DoubleRow(Center("сохранение загружено, день " + day), ConsoleColor.Green);
+            }
+
             DoubleRow(string.Empty, ConsoleColor.Gray);
             DoubleLine('╚', '═', '╝');
 
             Pause();
         }
 
-        public DayCommand AskDayCommand(int day, decimal money, int carsInQueue)
+        public int AskSaveSlot()
         {
-            DrawDayScreen(day, money, carsInQueue);
+            bool isChosen = false;
+            int slot = 1;
+
+            while (isChosen == false)
+            {
+                Clear();
+
+                Top();
+                Row("СОХРАНЕНИЯ", ConsoleColor.Cyan);
+                Middle();
+                Row("1 - слот 1", ConsoleColor.Gray);
+                Row("2 - слот 2", ConsoleColor.Gray);
+                Row("3 - слот 3", ConsoleColor.Gray);
+                Bottom();
+
+                int input = ReadNumber("Слот");
+
+                if (input >= 1 && input <= 3)
+                {
+                    slot = input;
+                    isChosen = true;
+                }
+                else
+                {
+                    ShowError("Введите 1, 2 или 3.");
+                }
+            }
+
+            return slot;
+        }
+
+        public void ShowAchievements(Profile profile)
+        {
+            Clear();
+
+            Top();
+            Row("ДОСТИЖЕНИЯ", ConsoleColor.Cyan);
+            Middle();
+
+            foreach (AchievementType type in Enum.GetValues(typeof(AchievementType)))
+            {
+                bool isUnlocked = profile.IsUnlocked(type);
+
+                string line = (isUnlocked ? "[+] " : "[ ] ") + Achievements.GetTitle(type);
+
+                Row(line, isUnlocked ? ConsoleColor.Green : ConsoleColor.DarkGray);
+            }
+
+            Middle();
+            Row(TwoColumns("рекорд кассы:", Money(profile.BestMoney)), ConsoleColor.White);
+            Bottom();
+
+            Pause();
+        }
+
+        public CourseType? AskCourse(IReadOnlyList<CourseOffer> offers, decimal earned, decimal money)
+        {
+            bool isChosen = false;
+            CourseType? type = null;
+
+            while (isChosen == false)
+            {
+                DrawCourses(offers, earned, money);
+
+                int input = ReadNumber("Курс");
+
+                if (input == ExitCommand)
+                {
+                    isChosen = true;
+                }
+                else if (input >= FirstItemNumber && input <= offers.Count)
+                {
+                    CourseOffer offer = offers[input - FirstItemNumber];
+
+                    if (offer.IsPassed)
+                    {
+                        ShowError("Этот курс уже пройден.");
+                    }
+                    else if (offer.IsAvailable == false)
+                    {
+                        string reason = earned < offer.RequiredEarned
+                            ? "Курс откроется после " + Money(offer.RequiredEarned) + " накоплений."
+                            : "Не хватает денег на курс.";
+
+                        ShowError(reason);
+                    }
+                    else
+                    {
+                        type = offer.Type;
+                        isChosen = true;
+                    }
+                }
+                else
+                {
+                    ShowError("Такой позиции нет в списке.");
+                }
+            }
+
+            return type;
+        }
+
+        public void ShowCourseResult(CourseInfo info, bool isPassed, string reason, decimal money)
+        {
+            Top();
+
+            if (isPassed)
+            {
+                Row("[+] Курс пройден: " + info.Name, ConsoleColor.Green);
+                Row("    марка " + CarNames.GetBrandTitle(info.Brand) + " теперь приезжает", ConsoleColor.Gray);
+                Row("    в кассе: " + Money(money), ConsoleColor.White);
+            }
+            else
+            {
+                Row("[-] " + info.Name + ": " + reason, ConsoleColor.Red);
+                Row("    в кассе: " + Money(money), ConsoleColor.Red);
+            }
+
+            Bottom();
+        }
+
+        private void DrawCourses(IReadOnlyList<CourseOffer> offers, decimal earned, decimal money)
+        {
+            Clear();
+
+            Top();
+            Row("КУРСЫ ПРОФПОДГОТОВКИ", ConsoleColor.Cyan);
+            Row(TwoColumns("накоплено:", Money(earned)), ConsoleColor.White);
+            Row(TwoColumns("в кассе:", Money(money)), ConsoleColor.White);
+            Middle();
+            Row(TwoColumns("курс", "цена"), ConsoleColor.DarkGray);
+
+            for (int i = 0; i < offers.Count; i++)
+            {
+                CourseOffer offer = offers[i];
+
+                string status = offer.IsPassed
+                    ? "пройден"
+                    : offer.IsAvailable ? Money(offer.Price) : "нужно " + Money(offer.RequiredEarned);
+
+                string left = (i + FirstItemNumber) + ". " + offer.Name + " (" + offer.BrandName + ")";
+
+                Row(TwoColumns(left, status),
+                    offer.IsPassed ? ConsoleColor.DarkGray : offer.IsAvailable ? ConsoleColor.Gray : ConsoleColor.DarkYellow);
+            }
+
+            Middle();
+            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        public bool AskContinueGame()
+        {
+            Clear();
+
+            Top();
+            Row("СОХРАНЕНИЕ НАЙДЕНО", ConsoleColor.Cyan);
+            Middle();
+            Row(ConfirmCommand + " - продолжить", ConsoleColor.Gray);
+            Row(ExitCommand + " - начать заново", ConsoleColor.DarkGray);
+            Bottom();
+
+            bool isAnswered = false;
+            bool isContinue = false;
+
+            while (isAnswered == false)
+            {
+                int input = ReadNumber("Решение");
+
+                if (input == ConfirmCommand)
+                {
+                    isContinue = true;
+                    isAnswered = true;
+                }
+                else if (input == ExitCommand)
+                {
+                    isContinue = false;
+                    isAnswered = true;
+                }
+                else
+                {
+                    ShowError("Введите 1 или 0.");
+                }
+            }
+
+            return isContinue;
+        }
+
+        public DayCommand AskDayCommand(int day, decimal money, int carsInQueue, GameGoal goal, string boxStatus)
+        {
+            DrawDayScreen(day, money, carsInQueue, goal, boxStatus);
 
             bool isChosen = false;
             DayCommand command = DayCommand.EndDay;
@@ -93,6 +363,16 @@ namespace AutoRepairShop
 
                     case DevelopmentCommand:
                         command = DayCommand.Development;
+                        isChosen = true;
+                        break;
+
+                    case AchievementsCommand:
+                        command = DayCommand.Achievements;
+                        isChosen = true;
+                        break;
+
+                    case CoursesCommand:
+                        command = DayCommand.Courses;
                         isChosen = true;
                         break;
 
@@ -150,7 +430,140 @@ namespace AutoRepairShop
             return isRepair;
         }
 
-        public DetailType? AskDetailToRepair(Car car, IReadOnlyList<Detail> brokenDetails, IReadOnlyList<StockItem> stock)
+        public RepairAction AskRepairAction(
+            Car car,
+            IReadOnlyList<Detail> brokenDetails,
+            WorkRates rates,
+            ServiceAccess access)
+        {
+            if (brokenDetails == null || brokenDetails.Count == 0)
+            {
+                DrawEachDetailIsFineScreen(car);
+
+                return RepairAction.Cancel;
+            }
+
+            DrawChecklist(car, brokenDetails, rates, access);
+
+            bool isChosen = false;
+            RepairAction action = RepairAction.Cancel;
+
+            while (isChosen == false)
+            {
+                int input = ReadNumber("Действие");
+
+                switch (input)
+                {
+                    case ExitCommand:
+                        action = RepairAction.Cancel;
+                        isChosen = true;
+                        break;
+
+                    case 1:
+                        action = RepairAction.Replace;
+                        isChosen = true;
+                        break;
+
+                    case 2:
+                        if (HasRepairable(brokenDetails, access))
+                        {
+                            action = RepairAction.Repair;
+                            isChosen = true;
+                        }
+                        else
+                        {
+                            ShowError("Ремонт без замены сейчас недоступен.");
+                        }
+
+                        break;
+
+                    default:
+                        ShowError("Введите 0, 1 или 2.");
+                        break;
+                }
+            }
+
+            return action;
+        }
+
+        public DetailType? AskReplacementDetail(Car car, IReadOnlyList<StockItem> stock, ServiceAccess access) =>
+            AskStockDetail(car, stock, access);
+
+        public DetailType? AskRepairableDetail(Car car, IReadOnlyList<Detail> repairable, WorkRates rates)
+        {
+            DrawRepairableScreen(car, repairable, rates);
+
+            bool isChosen = false;
+            DetailType? type = null;
+
+            while (isChosen == false)
+            {
+                int input = ReadNumber("Ремонт");
+
+                if (input == ExitCommand)
+                {
+                    isChosen = true;
+                }
+                else if (input >= FirstItemNumber && input <= repairable.Count)
+                {
+                    type = repairable[input - FirstItemNumber].Type;
+                    isChosen = true;
+                }
+                else
+                {
+                    ShowError("Такой позиции нет в списке.");
+                }
+            }
+
+            return type;
+        }
+
+        private static bool HasRepairable(IReadOnlyList<Detail> brokenDetails, ServiceAccess access)
+        {
+            foreach (Detail detail in brokenDetails)
+            {
+                if (detail.IsRepairable && access.CanRepair(detail.Category))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void DrawRepairableScreen(Car car, IReadOnlyList<Detail> repairable, WorkRates rates)
+        {
+            Clear();
+
+            Top();
+            Row("РЕМОНТ БЕЗ ЗАМЕНЫ", ConsoleColor.Cyan);
+            Row(car.Name, ConsoleColor.White);
+            Row(TwoColumns("можно отремонтировать:", repairable.Count + " шт."), ConsoleColor.Gray);
+            Middle();
+            Row(TwoColumns("деталь", "работа"), ConsoleColor.DarkGray);
+
+            for (int i = 0; i < repairable.Count; i++)
+            {
+                Detail detail = repairable[i];
+
+                string left = (i + FirstItemNumber) + ". " + detail.Name + " (" + detail.BrandName + ")";
+                string right = Money(detail.GetRepairCharge(rates.GetRate(detail.Category)));
+
+                Row(TwoColumns(left, right), ConsoleColor.Gray);
+            }
+
+            Middle();
+            Row("деталь остаётся на машине, со склада ничего не тратится", ConsoleColor.Yellow);
+            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        public DetailType? AskDetailToRepair(
+            Car car,
+            IReadOnlyList<Detail> brokenDetails,
+            IReadOnlyList<StockItem> stock,
+            WorkRates rates,
+            ServiceAccess access)
         {
             if (brokenDetails == null || brokenDetails.Count == 0)
             {
@@ -159,10 +572,10 @@ namespace AutoRepairShop
                 return null;
             }
 
-            DrawChecklist(car, brokenDetails);
+            DrawChecklist(car, brokenDetails, rates, access);
             Pause();
 
-            return AskStockDetail(car, stock);
+            return AskStockDetail(car, stock, access);
         }
 
         public void ShowDetailRepair(DetailRepairReport report)
@@ -185,9 +598,24 @@ namespace AutoRepairShop
                     Row("[-] На складе нет детали: " + DetailName(report.Detail), ConsoleColor.Red);
                     break;
 
+                case RepairOutcome.Repaired:
+                    Row("[+] Ремонт выполнен: " + DetailName(report.Detail), ConsoleColor.Green);
+                    Row("    работа: " + Money(report.Charge), ConsoleColor.Green);
+                    break;
+
+                case RepairOutcome.NotRepairable:
+                    Row("[-] Эту деталь нельзя отремонтировать без замены", ConsoleColor.Red);
+                    Row("    придётся ставить новую: " + DetailName(report.Detail), ConsoleColor.DarkGray);
+                    break;
+
                 default:
                     Row("[!] Неизвестный исход ремонта", ConsoleColor.Yellow);
                     break;
+            }
+
+            if (report.RelatedBroken != null)
+            {
+                Row("[!] Дешёвая жидкость повредила: " + report.RelatedBroken.Name, ConsoleColor.Yellow);
             }
 
             Bottom();
@@ -209,14 +637,82 @@ namespace AutoRepairShop
             Bottom();
         }
 
-        public DetailType? AskPartToBuy(IReadOnlyList<StockItem> items, decimal money, int totalQuantity, int capacity)
+        public bool AskShopBrand(out CarBrand brand, out bool isMaterials)
+        {
+            brand = CarBrand.Vaz;
+            isMaterials = false;
+
+            bool isChosen = false;
+            bool isCancelled = false;
+
+            while (isChosen == false)
+            {
+                DrawShopBrands();
+
+                int input = ReadNumber("Магазин");
+
+                switch (input)
+                {
+                    case 1:
+                        brand = CarBrand.Vaz;
+                        isChosen = true;
+                        break;
+
+                    case 2:
+                        brand = CarBrand.Izh;
+                        isChosen = true;
+                        break;
+
+                    case 3:
+                        brand = CarBrand.Volga;
+                        isChosen = true;
+                        break;
+
+                    case 4:
+                        isMaterials = true;
+                        isChosen = true;
+                        break;
+
+                    case ExitCommand:
+                        isCancelled = true;
+                        isChosen = true;
+                        break;
+
+                    default:
+                        ShowError("Введите 1-4 или 0.");
+                        break;
+                }
+            }
+
+            return isCancelled == false;
+        }
+
+        private void DrawShopBrands()
+        {
+            Clear();
+
+            Top();
+            Row("МАГАЗИНЫ", ConsoleColor.Cyan);
+            Middle();
+            Row("1 - ВАЗ", ConsoleColor.Gray);
+            Row("2 - Иж", ConsoleColor.Gray);
+            Row("3 - Волга", ConsoleColor.Gray);
+            Row("4 - материалы для покраски", ConsoleColor.Gray);
+            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        public DetailType? AskPartType(
+            IReadOnlyList<PartTemplate> templates,
+            string title,
+            IReadOnlyDictionary<DetailType, int> quantities)
         {
             bool isChosen = false;
             DetailType? type = null;
 
             while (isChosen == false)
             {
-                DrawShopScreen(items, money, totalQuantity, capacity);
+                DrawPartList(title, templates, quantities);
 
                 int input = ReadNumber("Деталь");
 
@@ -224,15 +720,10 @@ namespace AutoRepairShop
                 {
                     isChosen = true;
                 }
-                else if (input >= FirstItemNumber && input <= items.Count)
+                else if (input >= FirstItemNumber && input <= templates.Count)
                 {
-                    StockItem selected = items[input - 1];
-
-                    if (ConfirmPurchase(selected, money))
-                    {
-                        type = selected.Detail.Type;
-                        isChosen = true;
-                    }
+                    type = templates[input - FirstItemNumber].Type;
+                    isChosen = true;
                 }
                 else
                 {
@@ -243,6 +734,42 @@ namespace AutoRepairShop
             return type;
         }
 
+        public Brand AskBrand(DetailType type, decimal money)
+        {
+            PartTemplate template = DetailsCatalog.GetTemplate(type);
+
+            bool isChosen = false;
+            Brand brand = null;
+
+            while (isChosen == false)
+            {
+                DrawBrandList(template, money);
+
+                int input = ReadNumber("Производитель");
+
+                if (input == ExitCommand)
+                {
+                    isChosen = true;
+                }
+                else if (input >= FirstItemNumber && input <= DetailsCatalog.Brands.Count)
+                {
+                    Brand selected = DetailsCatalog.Brands[input - FirstItemNumber];
+
+                    if (ConfirmBrand(template, selected, money))
+                    {
+                        brand = selected;
+                        isChosen = true;
+                    }
+                }
+                else
+                {
+                    ShowError("Такой позиции нет в списке.");
+                }
+            }
+
+            return brand;
+        }
+
         public void ShowPurchase(PurchaseReport report, decimal money)
         {
             Top();
@@ -250,7 +777,8 @@ namespace AutoRepairShop
             switch (report.Outcome)
             {
                 case PurchaseOutcome.Bought:
-                    Row("[+] Куплено: " + DetailName(report.Detail), ConsoleColor.Green);
+                    Row("[+] Куплено: " + DetailName(report.Detail) + " (" + BrandName(report.Detail) + ")",
+                        ConsoleColor.Green);
                     Row("    потрачено: " + Money(report.Detail.Price), ConsoleColor.Green);
                     Row("    в кассе: " + Money(money), ConsoleColor.White);
                     break;
@@ -302,97 +830,204 @@ namespace AutoRepairShop
             return isContinue;
         }
 
-        public void ShowFinal(decimal money, int days)
+        public bool AskRepaint(Car car, decimal price, int days, PaintColor color)
+        {
+            Clear();
+
+            Top();
+            Row("ЗАКАЗ НА ПЕРЕКРАС", ConsoleColor.Cyan);
+            Row(car.Name, ConsoleColor.White);
+            Middle();
+            Row("Клиент просит полный перекрас кузова.", ConsoleColor.Gray);
+            Row(TwoColumns("заказанный цвет:", PaintColors.GetName(color)), ConsoleColor.White);
+            Row(TwoColumns("оплата:", Money(price)), ConsoleColor.Green);
+            Row(TwoColumns("бокс занят:", days + " дн."), ConsoleColor.Yellow);
+            Row("нужны: краска заказанного цвета, грунт и лак", ConsoleColor.DarkGray);
+            Middle();
+            Row(ConfirmCommand + " - взять заказ", ConsoleColor.Gray);
+            Row(ExitCommand + " - отказать", ConsoleColor.DarkGray);
+            Bottom();
+
+            return AskYesNo();
+        }
+
+        public PaintColor? AskPaintColor(IReadOnlyDictionary<DetailType, int> paints)
+        {
+            bool isChosen = false;
+            PaintColor? color = null;
+
+            while (isChosen == false)
+            {
+                DrawPaintList(paints);
+
+                int input = ReadNumber("Краска");
+
+                if (input == ExitCommand)
+                {
+                    isChosen = true;
+                }
+                else if (input >= FirstItemNumber && input <= PaintColors.All.Count)
+                {
+                    color = PaintColors.All[input - FirstItemNumber];
+                    isChosen = true;
+                }
+                else
+                {
+                    ShowError("Такой позиции нет в списке.");
+                }
+            }
+
+            return color;
+        }
+
+        public void ShowRepaintFailed(PaintColor ordered, PaintColor used)
+        {
+            Top();
+            Row("[-] Перекрас не принят клиентом", ConsoleColor.Red);
+            Row("    заказан: " + PaintColors.GetName(ordered), ConsoleColor.Gray);
+            Row("    покрашено: " + PaintColors.GetName(used), ConsoleColor.Red);
+            Row("    материалы израсходованы, оплаты нет", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        private void DrawPaintList(IReadOnlyDictionary<DetailType, int> paints)
+        {
+            Clear();
+
+            Top();
+            Row("ВЫБОР КРАСКИ", ConsoleColor.Cyan);
+            Row("Нужны краска нужного цвета, грунт и лак.", ConsoleColor.DarkGray);
+            Middle();
+            Row(TwoColumns("цвет", "на складе"), ConsoleColor.DarkGray);
+
+            for (int i = 0; i < PaintColors.All.Count; i++)
+            {
+                PaintColor color = PaintColors.All[i];
+                DetailType type = PaintColors.ToDetailType(color);
+                int quantity = paints.TryGetValue(type, out int count) ? count : 0;
+
+                string left = (i + FirstItemNumber) + ". " + PaintColors.GetName(color);
+                string right = quantity + " шт.";
+
+                Row(TwoColumns(left, right), quantity > 0 ? ConsoleColor.Gray : ConsoleColor.DarkGray);
+            }
+
+            Middle();
+            Row(ExitCommand + " - отменить заказ", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        public void ShowRepaintDone(decimal price, int busyUntilDay)
+        {
+            Top();
+            Row("[+] Перекрас выполнен", ConsoleColor.Green);
+            Row("    оплата: " + Money(price), ConsoleColor.Green);
+            Row("    кузовной бокс занят до дня " + busyUntilDay, ConsoleColor.Yellow);
+            Bottom();
+        }
+
+        public void ShowAchievement(AchievementType type)
+        {
+            Top();
+            Row("[*] Достижение: " + Achievements.GetTitle(type), ConsoleColor.Magenta);
+            Bottom();
+        }
+
+        public void ShowFinal(decimal money, ShiftStatistics statistics, GameEndReason reason, Profile profile)
         {
             Clear();
 
             DoubleLine('╔', '═', '╗');
             DoubleRow(string.Empty, ConsoleColor.Gray);
-            DoubleRow(Center("СМЕНА ОКОНЧЕНА"), ConsoleColor.Cyan);
+            DoubleRow(Center(GetFinalTitle(reason)), GetFinalColor(reason));
+            DoubleRow(Center(GetFinalMessage(reason)), GetFinalColor(reason));
             DoubleRow(string.Empty, ConsoleColor.Gray);
-            DoubleRow(Center("дней отработано: " + days), ConsoleColor.White);
+            DoubleRow(Center("дней отработано: " + statistics.Days), ConsoleColor.White);
             DoubleRow(Center("в кассе: " + Money(money)),
                 money >= 0m ? ConsoleColor.Green : ConsoleColor.Red);
-            DoubleRow(Center(money >= 0m ? "смена в плюсе" : "смена в минусе"),
-                money >= 0m ? ConsoleColor.Green : ConsoleColor.Red);
+            DoubleLine('╠', '═', '╣');
+            DoubleRow(" машин обслужено: " + statistics.Cars, ConsoleColor.Gray);
+            DoubleRow("   отремонтировано: " + statistics.Repaired, ConsoleColor.Green);
+            DoubleRow("   отказов: " + statistics.Refused, ConsoleColor.Gray);
+            DoubleRow(" выручка: " + Money(statistics.Revenue), ConsoleColor.Gray);
+            DoubleRow(" штрафы: " + Money(statistics.Fines), ConsoleColor.Red);
+            DoubleRow(" аренда: " + Money(statistics.Rent), ConsoleColor.Red);
+            DoubleRow(" закупки: " + Money(statistics.PurchaseCosts), ConsoleColor.Red);
+            DoubleRow(" улучшения: " + Money(statistics.UpgradeCosts), ConsoleColor.Red);
+            DoubleRow(" итог смены: " + Money(statistics.Profit),
+                statistics.Profit >= 0m ? ConsoleColor.Green : ConsoleColor.Red);
+            DoubleLine('╠', '═', '╣');
+            DoubleRow(" рекорд кассы: " + Money(profile.BestMoney), ConsoleColor.White);
+            DoubleRow(" достижений: " + profile.Achievements.Count, ConsoleColor.Magenta);
             DoubleRow(string.Empty, ConsoleColor.Gray);
             DoubleLine('╚', '═', '╝');
 
             Pause();
         }
 
-        public bool AskWarehouseUpgrade(Warehouse warehouse, ServiceDevelopment development)
+        public UpgradeType? AskUpgrade(IReadOnlyList<UpgradeOffer> offers, decimal money)
         {
-            Clear();
+            bool isChosen = false;
+            UpgradeType? type = null;
 
-            Top();
-            Row("РАЗВИТИЕ СЕРВИСА", ConsoleColor.Cyan);
-            Middle();
-            Row(TwoColumns("Склад:", warehouse.Capacity + " мест"), ConsoleColor.White);
-            Row(TwoColumns("Уровень склада:", development.WarehouseLevel + " из " + WarehouseUpgrade.MaxLevel), ConsoleColor.Gray);
-
-            if (development.CanUpgradeWarehouse)
+            while (isChosen == false)
             {
-                Row(TwoColumns("Расширение:", "+" + WarehouseUpgrade.CapacityPerLevel + " мест"), ConsoleColor.Gray);
-                Row(TwoColumns("Цена:", Money(development.WarehouseUpgradePrice)), ConsoleColor.White);
-            }
-            else
-            {
-                Row("Склад максимального размера.", ConsoleColor.DarkGray);
-            }
+                DrawDevelopmentScreen(offers, money);
 
-            Middle();
-            Row(ConfirmCommand + " - расширить склад",
-                development.CanUpgradeWarehouse ? ConsoleColor.Gray : ConsoleColor.DarkGray);
-            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
-            Bottom();
+                int input = ReadNumber("Улучшение");
 
-            bool isAnswered = false;
-            bool isBuy = false;
-
-            while (isAnswered == false)
-            {
-                int input = ReadNumber("Решение");
-
-                if (input == ConfirmCommand)
+                if (input == ExitCommand)
                 {
-                    isBuy = true;
-                    isAnswered = true;
+                    isChosen = true;
                 }
-                else if (input == ExitCommand)
+                else if (input >= FirstItemNumber && input <= offers.Count)
                 {
-                    isBuy = false;
-                    isAnswered = true;
+                    UpgradeOffer offer = offers[input - FirstItemNumber];
+
+                    if (offer.CanUpgrade == false)
+                    {
+                        ShowError("Улучшение уже максимального уровня.");
+                    }
+                    else if (ConfirmUpgrade(offer, money))
+                    {
+                        type = offer.Type;
+                        isChosen = true;
+                    }
                 }
                 else
                 {
-                    ShowError("Введите 1 или 0.");
+                    ShowError("Такой позиции нет в списке.");
                 }
             }
 
-            return isBuy;
+            return type;
         }
 
-        public void ShowUpgradeResult(UpgradeReport report, decimal money, int capacity)
+        public void ShowUpgradeResult(UpgradeReport report, decimal money, Warehouse warehouse)
         {
             Top();
 
             switch (report.Outcome)
             {
                 case UpgradeOutcome.Bought:
-                    Row("[+] Склад расширен", ConsoleColor.Green);
-                    Row("    теперь мест: " + capacity, ConsoleColor.Green);
+                    Row("[+] " + report.Name + ": уровень " + report.Level, ConsoleColor.Green);
+
+                    if (report.Type == UpgradeType.Warehouse)
+                    {
+                        Row("    теперь мест на складе: " + warehouse.Capacity, ConsoleColor.Green);
+                    }
+
                     Row("    потрачено: " + Money(report.Price), ConsoleColor.Green);
                     Row("    в кассе: " + Money(money), ConsoleColor.White);
                     break;
 
                 case UpgradeOutcome.NotEnoughMoney:
-                    Row("[-] Не хватает денег", ConsoleColor.Red);
+                    Row("[-] Не хватает денег на: " + report.Name, ConsoleColor.Red);
                     Row("    нужно: " + Money(report.Price) + ", в кассе: " + Money(money), ConsoleColor.Red);
                     break;
 
                 default:
-                    Row("[!] Склад максимального размера", ConsoleColor.Yellow);
+                    Row("[!] " + report.Name + " уже максимального уровня", ConsoleColor.Yellow);
                     break;
             }
 
@@ -434,156 +1069,77 @@ namespace AutoRepairShop
             Bottom();
         }
 
-        private void DrawDayScreen(int day, decimal money, int carsInQueue)
+        private void DrawDayScreen(int day, decimal money, int carsInQueue, GameGoal goal, string boxStatus)
         {
             Clear();
 
             Top();
             Row("ДЕНЬ " + day, ConsoleColor.Cyan);
+            Row(TwoColumns("Цель: " + goal.Title,
+                Money(goal.TargetMoney) + " (" + goal.GetProgress(money) + "%)"), ConsoleColor.Cyan);
             Row(TwoColumns("В кармане:", Money(money)), ConsoleColor.White);
             Row(TwoColumns("В очереди машин:", carsInQueue + " шт."),
                 carsInQueue > 0 ? ConsoleColor.Green : ConsoleColor.DarkGray);
+
+            if (string.IsNullOrEmpty(boxStatus) == false)
+            {
+                Row(boxStatus, ConsoleColor.Yellow);
+            }
+
             Middle();
             Row(TakeCarCommand + " - принять машину",
                 carsInQueue > 0 ? ConsoleColor.Gray : ConsoleColor.DarkGray);
             Row(ShopCommand + " - магазин запчастей", ConsoleColor.Gray);
             Row(DevelopmentCommand + " - развитие сервиса", ConsoleColor.Gray);
+            Row(AchievementsCommand + " - достижения", ConsoleColor.Gray);
+            Row(CoursesCommand + " - курсы профподготовки", ConsoleColor.Gray);
             Row(ExitCommand + " - закончить день", ConsoleColor.DarkGray);
             Bottom();
         }
 
-        private void DrawCarScreen(Car car)
+        private void DrawDevelopmentScreen(IReadOnlyList<UpgradeOffer> offers, decimal money)
         {
             Clear();
 
             Top();
-            Row("МАШИНА НА ПОДЪЁМНИКЕ", ConsoleColor.Cyan);
-            Row(car.Name, ConsoleColor.White);
-            Middle();
-            Row("Ремонтируем?", ConsoleColor.Gray);
-            Row(ConfirmCommand + " - да, берём в работу", ConsoleColor.Gray);
-            Row(ExitCommand + " - отказать (фиксированный штраф)", ConsoleColor.DarkGray);
-            Bottom();
-        }
-
-        private void DrawEachDetailIsFineScreen(Car car)
-        {
-            Clear();
-
-            Top();
-            Row("МАШИНА ИСПРАВНА", ConsoleColor.Green);
-            Row(car.Name, ConsoleColor.White);
-            Bottom();
-        }
-
-        private void DrawChecklist(Car car, IReadOnlyList<Detail> brokenDetails)
-        {
-            Clear();
-
-            Top();
-            Row("ЧЕК-ЛИСТ ПОЧИНКИ", ConsoleColor.Cyan);
-            Row(car.Name, ConsoleColor.White);
-            Row(TwoColumns("сломано деталей:", brokenDetails.Count + " шт."), ConsoleColor.Gray);
-            Middle();
-            Row(TwoColumns("деталь", "выплата"), ConsoleColor.DarkGray);
-            Middle();
-
-            foreach (Detail detail in brokenDetails)
-            {
-                Row(TwoColumns("  " + detail.Name, Money(detail.Payout)), ConsoleColor.Gray);
-                WriteWrapped(detail.Description, 4, ConsoleColor.DarkGray);
-            }
-
-            Bottom();
-        }
-
-        private DetailType? AskStockDetail(Car car, IReadOnlyList<StockItem> stock)
-        {
-            DrawStockScreen(car, stock);
-
-            bool isChosen = false;
-            DetailType? type = null;
-
-            while (isChosen == false)
-            {
-                int input = ReadNumber("Деталь");
-
-                if (input == ExitCommand)
-                {
-                    isChosen = true;
-                }
-                else if (input >= FirstItemNumber && input <= stock.Count)
-                {
-                    type = stock[input - 1].Detail.Type;
-                    isChosen = true;
-                }
-                else
-                {
-                    ShowError("Такой позиции нет в списке.");
-                }
-            }
-
-            return type;
-        }
-
-        private void DrawStockScreen(Car car, IReadOnlyList<StockItem> stock)
-        {
-            Clear();
-
-            Top();
-            Row("ЗАМЕНА ДЕТАЛИ", ConsoleColor.Cyan);
-            Row(car.Name, ConsoleColor.White);
-            Row("Выберите деталь, которую поставим на машину.", ConsoleColor.Gray);
-            Middle();
-            Row(TwoColumns("деталь", "цена (на складе)"), ConsoleColor.DarkGray);
-
-            for (int i = 0; i < stock.Count; i++)
-            {
-                StockItem item = stock[i];
-
-                string left = (i + FirstItemNumber) + ". " + item.Detail.Name;
-                string right = Money(item.Detail.Price) + " (" + item.Quantity + " шт.)";
-
-                Row(TwoColumns(left, right), item.Quantity > 0 ? ConsoleColor.Gray : ConsoleColor.DarkGray);
-            }
-
-            Middle();
-            Row("Если деталь на машине исправна — она уйдёт со склада без выплаты.", ConsoleColor.Yellow);
-            Row(ExitCommand + " - прекратить ремонт", ConsoleColor.DarkGray);
-            Row("(штраф за каждую непочиненную деталь)", ConsoleColor.DarkGray);
-            Bottom();
-        }
-
-        private void DrawShopScreen(IReadOnlyList<StockItem> items, decimal money, int totalQuantity, int capacity)
-        {
-            Clear();
-
-            Top();
-            Row("МАГАЗИН ЗАПЧАСТЕЙ", ConsoleColor.Cyan);
+            Row("РАЗВИТИЕ СЕРВИСА", ConsoleColor.Cyan);
             Row(TwoColumns("В кассе:", Money(money)), ConsoleColor.White);
-            Row(TwoColumns("Склад:", totalQuantity + " / " + capacity), ConsoleColor.Gray);
             Middle();
-            Row(TwoColumns("деталь", "цена (на складе)"), ConsoleColor.DarkGray);
+            Row(TwoColumns("улучшение", "цена"), ConsoleColor.DarkGray);
 
-            for (int i = 0; i < items.Count; i++)
+            for (int i = 0; i < offers.Count; i++)
             {
-                StockItem item = items[i];
+                UpgradeOffer offer = offers[i];
 
-                string left = (i + FirstItemNumber) + ". " + item.Detail.Name;
-                string right = Money(item.Detail.Price) + " (" + item.Quantity + " шт.)";
+                string left = (i + FirstItemNumber) + ". " + offer.Name
+                    + " [" + offer.Level + "/" + offer.MaxLevel + "] " + offer.EffectDescription;
+                string right = offer.CanUpgrade ? Money(offer.Price) : "максимум";
 
-                Row(TwoColumns(left, right), ConsoleColor.Gray);
+                Row(TwoColumns(left, right), offer.CanUpgrade ? ConsoleColor.Gray : ConsoleColor.DarkGray);
             }
 
             Middle();
-            Row("выберите номер, чтобы увидеть описание", ConsoleColor.DarkGray);
-            Row(ExitCommand + " - выйти из магазина", ConsoleColor.DarkGray);
+            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
             Bottom();
         }
 
-        private bool ConfirmPurchase(StockItem item, decimal money)
+        private bool ConfirmUpgrade(UpgradeOffer offer, decimal money)
         {
-            DrawPurchaseCard(item, money);
+            Clear();
+
+            Top();
+            Row("УЛУЧШЕНИЕ", ConsoleColor.Cyan);
+            Row(offer.Name, ConsoleColor.White);
+            Middle();
+            Row(TwoColumns("Эффект:", offer.EffectDescription), ConsoleColor.Gray);
+            Row(TwoColumns("Уровень:", offer.Level + " -> " + (offer.Level + 1)), ConsoleColor.Gray);
+            Row(TwoColumns("Цена:", Money(offer.Price)), ConsoleColor.White);
+            Row(TwoColumns("В кассе:", Money(money)),
+                money >= offer.Price ? ConsoleColor.Gray : ConsoleColor.Red);
+            Middle();
+            Row(ConfirmCommand + " - купить", ConsoleColor.Gray);
+            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
+            Bottom();
 
             bool isAnswered = false;
             bool isBuy = false;
@@ -611,25 +1167,251 @@ namespace AutoRepairShop
             return isBuy;
         }
 
-        private void DrawPurchaseCard(StockItem item, decimal money)
+        private void DrawCarScreen(Car car)
         {
             Clear();
 
             Top();
-            Row("КАРТОЧКА ДЕТАЛИ", ConsoleColor.Cyan);
-            Row(item.Detail.Name, ConsoleColor.White);
+            Row("МАШИНА НА ПОДЪЁМНИКЕ", ConsoleColor.Cyan);
+            Row(car.Name, ConsoleColor.White);
             Middle();
-            WriteWrapped(item.Detail.Description, 2, ConsoleColor.Gray);
+            Row("Ремонтируем?", ConsoleColor.Gray);
+            Row(ConfirmCommand + " - да, берём в работу", ConsoleColor.Gray);
+            Row(ExitCommand + " - отказать (фиксированный штраф)", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        private void DrawEachDetailIsFineScreen(Car car)
+        {
+            Clear();
+
+            Top();
+            Row("МАШИНА ИСПРАВНА", ConsoleColor.Green);
+            Row(car.Name, ConsoleColor.White);
+            Bottom();
+        }
+
+        private void DrawChecklist(Car car, IReadOnlyList<Detail> brokenDetails, WorkRates rates, ServiceAccess access)
+        {
+            Clear();
+
+            Top();
+            Row("ЧЕК-ЛИСТ ПОЧИНКИ", ConsoleColor.Cyan);
+            Row(car.Name, ConsoleColor.White);
+            Row(TwoColumns("сломано деталей:", brokenDetails.Count + " шт."), ConsoleColor.Gray);
             Middle();
-            Row(TwoColumns("цена:", Money(item.Detail.Price)), ConsoleColor.White);
-            Row(TwoColumns("на складе:", item.Quantity + " шт."), ConsoleColor.Gray);
-            Row(TwoColumns("выплата за замену:", Money(item.Detail.Payout)), ConsoleColor.Green);
-            Row(TwoColumns("в кассе:", Money(money)),
-                money >= item.Detail.Price ? ConsoleColor.Gray : ConsoleColor.Red);
+            Row(TwoColumns("деталь", "выплата"), ConsoleColor.DarkGray);
+            Middle();
+
+            foreach (Detail detail in brokenDetails)
+            {
+                bool isLocked = access.CanRepair(detail.Category) == false;
+
+                string name = "  " + detail.Name + " (" + detail.BrandName + ")"
+                    + (isLocked ? " — " + access.GetLockReason(detail.Category) : string.Empty);
+
+                Row(TwoColumns(name, Money(detail.GetPayout(rates.GetRate(detail.Category)))),
+                    isLocked ? ConsoleColor.DarkGray : ConsoleColor.Gray);
+
+                WriteWrapped(detail.Description, 4, ConsoleColor.DarkGray);
+            }
+
+            Middle();
+            Row("1 - заменить деталь", ConsoleColor.Gray);
+            Row("2 - отремонтировать без замены", ConsoleColor.Gray);
+            Row(ExitCommand + " - прекратить ремонт", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        private DetailType? AskStockDetail(Car car, IReadOnlyList<StockItem> stock, ServiceAccess access)
+        {
+            DrawStockScreen(car, stock, access);
+
+            bool isChosen = false;
+            DetailType? type = null;
+
+            while (isChosen == false)
+            {
+                int input = ReadNumber("Деталь");
+
+                if (input == ExitCommand)
+                {
+                    isChosen = true;
+                }
+                else if (input >= FirstItemNumber && input <= stock.Count)
+                {
+                    StockItem item = stock[input - 1];
+
+                    if (access.CanRepair(item.Template.Category) == false)
+                    {
+                        ShowError("Для этой категории нужен бокс — купите его в развитии.");
+                    }
+                    else
+                    {
+                        type = item.Template.Type;
+                        isChosen = true;
+                    }
+                }
+                else
+                {
+                    ShowError("Такой позиции нет в списке.");
+                }
+            }
+
+            return type;
+        }
+
+        private void DrawStockScreen(Car car, IReadOnlyList<StockItem> stock, ServiceAccess access)
+        {
+            Clear();
+
+            Top();
+            Row("ЗАМЕНА ДЕТАЛИ", ConsoleColor.Cyan);
+            Row(car.Name, ConsoleColor.White);
+            Row("Выберите деталь, которую поставим на машину.", ConsoleColor.Gray);
+            Middle();
+            Row(TwoColumns("деталь", "цена от (на складе)"), ConsoleColor.DarkGray);
+
+            for (int i = 0; i < stock.Count; i++)
+            {
+                StockItem item = stock[i];
+                bool isLocked = access.CanRepair(item.Template.Category) == false;
+
+                string left = (i + FirstItemNumber) + ". " + item.Template.Name
+                    + " [" + CategoryName(item.Template.Category) + "]";
+                string right = Money(item.Template.GetPrice(DetailsCatalog.StandardBrand))
+                    + " (" + item.Quantity + " шт.)";
+
+                Row(TwoColumns(left, right),
+                    isLocked || item.Quantity == 0 ? ConsoleColor.DarkGray : ConsoleColor.Gray);
+            }
+
+            Middle();
+            Row("Если деталь на машине исправна — она уйдёт со склада без выплаты.", ConsoleColor.Yellow);
+            Row(ExitCommand + " - прекратить ремонт", ConsoleColor.DarkGray);
+            Row("(штраф за каждую непочиненную деталь)", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        private void DrawPartList(string title, IReadOnlyList<PartTemplate> templates, IReadOnlyDictionary<DetailType, int> quantities)
+        {
+            Clear();
+
+            Top();
+            Row("МАГАЗИН: " + title, ConsoleColor.Cyan);
+            Middle();
+            Row(TwoColumns("деталь", "цена от (на складе)"), ConsoleColor.DarkGray);
+
+            for (int i = 0; i < templates.Count; i++)
+            {
+                PartTemplate template = templates[i];
+                int quantity = quantities.TryGetValue(template.Type, out int count) ? count : 0;
+
+                string left = (i + FirstItemNumber) + ". " + template.Name;
+                string right = Money(template.GetPrice(DetailsCatalog.StandardBrand)) + " (" + quantity + " шт.)";
+
+                Row(TwoColumns(left, right), ConsoleColor.Gray);
+            }
+
+            Middle();
+            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        private void DrawBrandList(PartTemplate template, decimal money)
+        {
+            Clear();
+
+            Top();
+            Row(CategoryName(template.Category) + ": " + template.Name, ConsoleColor.Cyan);
+            Middle();
+            Row(TwoColumns("производитель", "цена / работа"), ConsoleColor.DarkGray);
+
+            for (int i = 0; i < DetailsCatalog.Brands.Count; i++)
+            {
+                Brand brand = DetailsCatalog.Brands[i];
+
+                string left = (i + FirstItemNumber) + ". " + brand.Name;
+                string right = Money(template.GetPrice(brand)) + " / " + Money(template.GetWork(brand));
+
+                Row(TwoColumns(left, right), ConsoleColor.Gray);
+            }
+
+            Middle();
+            Row(TwoColumns("в кассе:", Money(money)), money >= 0m ? ConsoleColor.White : ConsoleColor.Red);
+            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
+            Bottom();
+        }
+
+        private bool ConfirmBrand(PartTemplate template, Brand brand, decimal money)
+        {
+            decimal price = template.GetPrice(brand);
+            decimal work = template.GetWork(brand);
+
+            Clear();
+
+            Top();
+            Row("ПОКУПКА", ConsoleColor.Cyan);
+            Row(template.Name + " (" + brand.Name + ")", ConsoleColor.White);
+            Middle();
+            WriteWrapped(template.Description, 2, ConsoleColor.Gray);
+            Middle();
+            Row(TwoColumns("цена:", Money(price)), ConsoleColor.White);
+            Row(TwoColumns("работа:", Money(work)), ConsoleColor.Gray);
+            Row(TwoColumns("выплата за замену:", Money(price + work)), ConsoleColor.Green);
+            Row(TwoColumns("в кассе:", Money(money)), money >= price ? ConsoleColor.Gray : ConsoleColor.Red);
             Middle();
             Row(ConfirmCommand + " - купить", ConsoleColor.Gray);
-            Row(ExitCommand + " - назад к списку", ConsoleColor.DarkGray);
+            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
             Bottom();
+
+            return AskYesNo();
+        }
+
+        private bool AskYesNo()
+        {
+            bool isAnswered = false;
+            bool isPositive = false;
+
+            while (isAnswered == false)
+            {
+                int input = ReadNumber("Решение");
+
+                if (input == ConfirmCommand)
+                {
+                    isPositive = true;
+                    isAnswered = true;
+                }
+                else if (input == ExitCommand)
+                {
+                    isPositive = false;
+                    isAnswered = true;
+                }
+                else
+                {
+                    ShowError("Введите 1 или 0.");
+                }
+            }
+
+            return isPositive;
+        }
+
+        private static string CategoryName(PartCategory category)
+        {
+            switch (category)
+            {
+                case PartCategory.Body:
+                    return "кузов";
+
+                case PartCategory.Electric:
+                    return "электрика";
+
+                case PartCategory.Fluid:
+                    return "жидкости";
+
+                default:
+                    return "двигатель";
+            }
         }
 
         private void DrawNextDayScreen(int day, decimal money)
@@ -644,6 +1426,51 @@ namespace AutoRepairShop
             Row(ConfirmCommand + " - следующая смена", ConsoleColor.Gray);
             Row(ExitCommand + " - закончить игру", ConsoleColor.DarkGray);
             Bottom();
+        }
+
+        private static string GetFinalTitle(GameEndReason reason)
+        {
+            switch (reason)
+            {
+                case GameEndReason.GoalReached:
+                    return "ДОМ КУПЛЕН";
+
+                case GameEndReason.Debt:
+                    return "СЕРВИС РАЗОРЁН";
+
+                default:
+                    return "СМЕНА ОКОНЧЕНА";
+            }
+        }
+
+        private static string GetFinalMessage(GameEndReason reason)
+        {
+            switch (reason)
+            {
+                case GameEndReason.GoalReached:
+                    return "цель достигнута — дом ваш";
+
+                case GameEndReason.Debt:
+                    return "касса ушла в минус";
+
+                default:
+                    return "игрок завершил смену";
+            }
+        }
+
+        private static ConsoleColor GetFinalColor(GameEndReason reason)
+        {
+            switch (reason)
+            {
+                case GameEndReason.GoalReached:
+                    return ConsoleColor.Green;
+
+                case GameEndReason.Debt:
+                    return ConsoleColor.Red;
+
+                default:
+                    return ConsoleColor.Cyan;
+            }
         }
 
         private static void Clear()
@@ -703,6 +1530,9 @@ namespace AutoRepairShop
 
         private static string DetailName(Detail detail) =>
             detail == null ? "неизвестная деталь" : detail.Name;
+
+        private static string BrandName(Detail detail) =>
+            detail == null ? "без производителя" : detail.BrandName;
 
         private static string TwoColumns(string left, string right)
         {

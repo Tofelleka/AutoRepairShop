@@ -1,23 +1,17 @@
-﻿using System;
+using System;
 
 namespace AutoRepairShop
 {
     internal class UpgradeShop
     {
         private readonly CashRegister _cashRegister;
-        private readonly Warehouse _warehouse;
         private readonly ServiceDevelopment _development;
 
-        public UpgradeShop(CashRegister cashRegister, Warehouse warehouse, ServiceDevelopment development)
+        public UpgradeShop(CashRegister cashRegister, ServiceDevelopment development)
         {
             if (cashRegister == null)
             {
                 throw new ArgumentNullException(nameof(cashRegister));
-            }
-
-            if (warehouse == null)
-            {
-                throw new ArgumentNullException(nameof(warehouse));
             }
 
             if (development == null)
@@ -26,29 +20,30 @@ namespace AutoRepairShop
             }
 
             _cashRegister = cashRegister;
-            _warehouse = warehouse;
             _development = development;
         }
 
-        public UpgradeReport BuyWarehouseUpgrade()
+        public UpgradeReport Buy(UpgradeType type)
         {
-            if (_development.CanUpgradeWarehouse == false)
+            UpgradeInfo info = UpgradeCatalog.Get(type);
+            int level = _development.GetLevel(type);
+
+            if (info.HasNextLevel(level) == false)
             {
-                return new UpgradeReport(UpgradeOutcome.MaxLevelReached, 0m, _development.WarehouseLevel);
+                return new UpgradeReport(UpgradeOutcome.MaxLevelReached, type, info.Name, 0m, level);
             }
 
-            decimal price = _development.WarehouseUpgradePrice;
+            decimal price = info.GetPrice(level);
 
             if (_cashRegister.CanAfford(price) == false)
             {
-                return new UpgradeReport(UpgradeOutcome.NotEnoughMoney, price, _development.WarehouseLevel);
+                return new UpgradeReport(UpgradeOutcome.NotEnoughMoney, type, info.Name, price, level);
             }
 
             _cashRegister.Pay(price);
-            _development.ApplyWarehouseUpgrade();
-            _warehouse.IncreaseCapacity(WarehouseUpgrade.CapacityPerLevel);
+            _development.ApplyUpgrade(type);
 
-            return new UpgradeReport(UpgradeOutcome.Bought, price, _development.WarehouseLevel);
+            return new UpgradeReport(UpgradeOutcome.Bought, type, info.Name, price, level + 1);
         }
     }
 }

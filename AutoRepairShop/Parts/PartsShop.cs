@@ -4,17 +4,11 @@ namespace AutoRepairShop
 {
     internal class PartsShop
     {
-        private readonly PartsFactory _partsFactory;
         private readonly Warehouse _warehouse;
         private readonly CashRegister _cashRegister;
 
-        public PartsShop(PartsFactory partsFactory, Warehouse warehouse, CashRegister cashRegister)
+        public PartsShop(Warehouse warehouse, CashRegister cashRegister)
         {
-            if (partsFactory == null)
-            {
-                throw new ArgumentNullException(nameof(partsFactory));
-            }
-
             if (warehouse == null)
             {
                 throw new ArgumentNullException(nameof(warehouse));
@@ -25,19 +19,23 @@ namespace AutoRepairShop
                 throw new ArgumentNullException(nameof(cashRegister));
             }
 
-            _partsFactory = partsFactory;
             _warehouse = warehouse;
             _cashRegister = cashRegister;
         }
 
-        public PurchaseReport Buy(DetailType type)
+        public PurchaseReport Buy(DetailType type, Brand brand)
         {
-            if (_partsFactory.GetAll().ContainsKey(type) == false)
+            if (brand == null)
+            {
+                throw new ArgumentNullException(nameof(brand));
+            }
+
+            if (DetailsCatalog.TryGetTemplate(type, out PartTemplate template) == false)
             {
                 return new PurchaseReport(PurchaseOutcome.UnknownDetail, null);
             }
 
-            Detail detail = _partsFactory.Create(type);
+            var detail = new Detail(template, brand);
 
             if (_cashRegister.CanAfford(detail.Price) == false)
             {

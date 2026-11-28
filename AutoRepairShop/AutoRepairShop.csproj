@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -44,23 +44,45 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Development\ServiceDevelopment.cs" />
+    <Compile Include="Development\UpgradeCatalog.cs" />
+    <Compile Include="Development\UpgradeInfo.cs" />
     <Compile Include="Development\UpgradeReport.cs" />
     <Compile Include="Development\UpgradeShop.cs" />
-    <Compile Include="Development\WarehouseUpgrade.cs" />
     <Compile Include="Enums\UpgradeOutcome.cs" />
+    <Compile Include="Enums\UpgradeType.cs" />
+    <Compile Include="Enums\GameEndReason.cs" />
     <Compile Include="Factories\CarFactory.cs" />
-    <Compile Include="Factories\CarNames.cs" />
+    <Compile Include="Cars\CarNames.cs" />
     <Compile Include="Factories\WarehouseFactory.cs" />
     <Compile Include="Game\AutoRepairManager.cs" />
     <Compile Include="Game\DayStatistics.cs" />
+    <Compile Include="Game\GameGoal.cs" />
+    <Compile Include="Game\Achievements.cs" />
+    <Compile Include="Game\Profile.cs" />
+    <Compile Include="Game\GameBalance.cs" />
+    <Compile Include="Education\CourseInfo.cs" />
+    <Compile Include="Education\CourseCatalog.cs" />
+    <Compile Include="Education\Education.cs" />
+    <Compile Include="Game\ShiftStatistics.cs" />
     <Compile Include="UI\Illustrator.cs" />
     <Compile Include="Cars\Car.cs" />
     <Compile Include="Finance\CashRegister.cs" />
     <Compile Include="Repairs\DetailRepairReport.cs" />
     <Compile Include="Factories\PartsFactory.cs" />
     <Compile Include="Parts\Detail.cs" />
+    <Compile Include="Parts\Brand.cs" />
+    <Compile Include="Parts\PartTemplate.cs" />
+    <Compile Include="Parts\PaintColors.cs" />
+    <Compile Include="Parts\ServiceAccess.cs" />
+    <Compile Include="Parts\WorkRates.cs" />
     <Compile Include="Parts\DetailsCatalog.cs" />
     <Compile Include="Enums\DetailType.cs" />
+    <Compile Include="Enums\PartCategory.cs" />
+    <Compile Include="Enums\AchievementType.cs" />
+    <Compile Include="Enums\PaintColor.cs" />
+    <Compile Include="Enums\CarBrand.cs" />
+    <Compile Include="Enums\CourseType.cs" />
+    <Compile Include="Enums\RepairAction.cs" />
     <Compile Include="Repairs\Garage.cs" />
     <Compile Include="Parts\PartsShop.cs" />
     <Compile Include="Program.cs" />
@@ -72,6 +94,7 @@
     <Compile Include="Repairs\RepairReport.cs" />
     <Compile Include="Parts\Warehouse.cs" />
     <Compile Include="Common\IRandomSource.cs" />
+    <Compile Include="Common\GameSave.cs" />
     <Compile Include="Common\SystemRandomSource.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -80,3 +103,10 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
+
+
+
+
+
+
+
