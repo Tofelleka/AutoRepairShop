@@ -9,7 +9,8 @@ namespace AutoRepairShop
             decimal revenue,
             decimal fines,
             decimal rent,
-            decimal purchaseCosts)
+            decimal purchaseCosts,
+            decimal upgradeCosts)
         {
             Cars = cars;
             Refused = refused;
@@ -18,6 +19,8 @@ namespace AutoRepairShop
             Fines = fines;
             Rent = rent;
             PurchaseCosts = purchaseCosts;
+            UpgradeCosts = upgradeCosts;
+            
         }
 
         public int Cars { get; }
@@ -34,8 +37,10 @@ namespace AutoRepairShop
 
         public decimal PurchaseCosts { get; }
 
+        public decimal UpgradeCosts { get; }
+
         public decimal NetRevenue => Revenue - Fines;
 
-        public decimal Profit => NetRevenue - Rent - PurchaseCosts;
+        public decimal Profit => NetRevenue - Rent - PurchaseCosts - UpgradeCosts;
     }
 }

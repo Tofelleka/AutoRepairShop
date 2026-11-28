@@ -15,10 +15,13 @@ namespace AutoRepairShop
         private readonly Warehouse _warehouse;
         private readonly Garage _garage;
         private readonly CashRegister _cashRegister;
+        private readonly ServiceDevelopment _serviceDevelopment;
+        private readonly UpgradeShop _upgradeShop;
 
         private readonly List<RepairReport> _dayReports = new List<RepairReport>();
 
         private decimal _dayPurchaseCosts;
+        private decimal _dayUpgradeCosts;
 
         public AutoRepairManager(Illustrator illustrator)
         {
@@ -33,12 +36,15 @@ namespace AutoRepairShop
 
             _partsFactory = new PartsFactory(DetailsCatalog.Catalog);
             _cashRegister = new CashRegister();
+            _serviceDevelopment = new ServiceDevelopment();
 
             var carFactory = new CarFactory(DetailsCatalog.Catalog, random);
             var warehouseFactory = new WarehouseFactory(_partsFactory);
 
+
             _carsQueue = new CarsQueue(carFactory, random);
             _warehouse = warehouseFactory.Create();
+            _upgradeShop = new UpgradeShop(_cashRegister, _warehouse, _serviceDevelopment);
             _garage = new Garage(_warehouse);
             _partsShop = new PartsShop(_partsFactory, _warehouse, _cashRegister);
         }
@@ -55,6 +61,7 @@ namespace AutoRepairShop
             {
                 _dayReports.Clear();
                 _dayPurchaseCosts = 0m;
+                _dayUpgradeCosts = 0m;
 
                 _carsQueue.AddCars();
 
@@ -76,6 +83,10 @@ namespace AutoRepairShop
 
                         case DayCommand.EndDay:
                             isDayOver = true;
+                            break;
+
+                        case DayCommand.Development:
+                            OpenDevelopment();
                             break;
                     }
                 }
@@ -155,7 +166,7 @@ namespace AutoRepairShop
                     items,
                     _cashRegister.Money,
                     _warehouse.TotalQuantity,
-                    Warehouse.WarehouseCapacity);
+                    _warehouse.Capacity);
 
                 if (type == null)
                 {
@@ -176,6 +187,31 @@ namespace AutoRepairShop
             }
         }
 
+        private void OpenDevelopment()
+        {
+            bool isOpen = true;
+
+            while (isOpen)
+            {
+                if (_illustrator.AskWarehouseUpgrade(_warehouse, _development) == false)
+                {
+                    isOpen = false;
+
+                    continue;
+                }
+
+                UpgradeReport report = _upgradeShop.BuyWarehouseUpgrade();
+
+                if (report.Outcome == UpgradeOutcome.Bought)
+                {
+                    _dayUpgradeCosts += report.Price;
+                }
+
+                _illustrator.ShowUpgradeResult(report, _cashRegister.Money, _warehouse.Capacity);
+                _illustrator.Pause();
+            }
+        }
+
         private List<StockItem> BuildStockItems()
         {
             return _partsFactory.GetAll()
@@ -191,7 +227,7 @@ namespace AutoRepairShop
             decimal fines = _dayReports.Sum(report => report.Fine);
             decimal revenue = _dayReports.Sum(report => report.Revenue);
 
-            return new DayStatistics(cars, refused, repaired, revenue, fines, DailyRent, _dayPurchaseCosts);
+            return new DayStatistics(cars, refused, repaired, revenue, fines, DailyRent, _dayPurchaseCosts, _dayUpgradeCosts);
         }
     }
 }

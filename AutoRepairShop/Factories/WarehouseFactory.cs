@@ -28,7 +28,7 @@ namespace AutoRepairShop
             {
                 var detailList = new List<Detail>();
 
-                for (int i = 0; i < InitialQuantityPerType && totalQuantity < Warehouse.WarehouseCapacity; i++)
+                for (int i = 0; i < InitialQuantityPerType && totalQuantity < WarehouseUpgrade.BaseCapacity; i++)
                 {
                     detailList.Add(_partsFactory.Create(type));
                     totalQuantity++;
@@ -37,7 +37,7 @@ namespace AutoRepairShop
                 details[type] = detailList;
             }
 
-            return new Warehouse(details);
+            return new Warehouse(details, WarehouseUpgrade.BaseCapacity);
         }
     }
 }

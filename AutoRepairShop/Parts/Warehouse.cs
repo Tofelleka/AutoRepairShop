@@ -6,32 +6,60 @@ namespace AutoRepairShop
 {
     internal class Warehouse
     {
-        public const int WarehouseCapacity = 60;
-
         private readonly Dictionary<DetailType, List<Detail>> _details;
 
-        public Warehouse(Dictionary<DetailType, List<Detail>> details)
+        public Warehouse(Dictionary<DetailType, List<Detail>> details, int capacity)
         {
             if (details == null)
             {
                 throw new ArgumentNullException(nameof(details));
             }
 
-            _details = details;
+            if (capacity <= 0)
+            {
+                throw new ArgumentException("Вместимость склада должна быть больше нуля.", nameof(capacity));
+            }
 
-            if (TotalQuantity > WarehouseCapacity)
+            _details = details;
+            Capacity = capacity;
+
+            if (TotalQuantity > Capacity)
             {
                 throw new ArgumentException(
-                    $"Начальный запас больше вместимости склада: {TotalQuantity} из {WarehouseCapacity}.",
+                    $"Начальный запас больше вместимости склада: {TotalQuantity} из {Capacity}.",
                     nameof(details));
             }
         }
 
-        public int TotalQuantity => _details.Values.Sum(details => details.Count);
+        public int Capacity { get; private set; }
 
-        public bool TryTake(DetailType type, out Detail newDetail)
+        public int TotalQuantity => _details.Values.Sum(detail => detail.Count);
+
+        public bool TryAdd(Detail detail)
         {
-            newDetail = null;
+            if (detail == null)
+            {
+                throw new ArgumentNullException(nameof(detail));
+            }
+
+            if (_details.TryGetValue(detail.Type, out List<Detail> details) == false)
+            {
+                return false;
+            }
+
+            if (TotalQuantity >= Capacity)
+            {
+                return false;
+            }
+
+            details.Add(detail);
+
+            return true;
+        }
+
+        public bool TryTake(DetailType type, out Detail detail)
+        {
+            detail = null;
 
             if (_details.TryGetValue(type, out List<Detail> details) == false)
             {
@@ -43,11 +71,9 @@ namespace AutoRepairShop
                 return false;
             }
 
-            int lastIndex = details.Count - 1;
+            detail = details[details.Count - 1];
 
-            newDetail = details[lastIndex];
-
-            details.RemoveAt(lastIndex);
+            details.RemoveAt(details.Count - 1);
 
             return true;
         }
@@ -62,26 +88,14 @@ namespace AutoRepairShop
             return details.Count;
         }
 
-        public bool TryAdd(Detail detail)
+        public void IncreaseCapacity(int extra)
         {
-            if (detail == null)
+            if (extra <= 0)
             {
-                throw new ArgumentNullException(nameof(detail));
+                throw new ArgumentOutOfRangeException(nameof(extra), "Прибавка вместимости должна быть положительной.");
             }
 
-            if (_details.TryGetValue(detail.Type, out List<Detail> details) == false)
-            {
-                return false;
-            }
-
-            if (TotalQuantity >= WarehouseCapacity)
-            {
-                return false;
-            }
-
-            details.Add(detail);
-
-            return true;
+            Capacity += extra;
         }
     }
 }

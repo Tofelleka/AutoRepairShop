@@ -43,6 +43,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Development\ServiceDevelopment.cs" />
+    <Compile Include="Development\UpgradeReport.cs" />
+    <Compile Include="Development\UpgradeShop.cs" />
+    <Compile Include="Development\WarehouseUpgrade.cs" />
+    <Compile Include="Enums\UpgradeOutcome.cs" />
     <Compile Include="Factories\CarFactory.cs" />
     <Compile Include="Factories\CarNames.cs" />
     <Compile Include="Factories\WarehouseFactory.cs" />

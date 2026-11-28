@@ -9,7 +9,8 @@ namespace AutoRepairShop
     {
         EndDay = 0,
         TakeCar = 1,
-        Shop = 2
+        Shop = 2,
+        Development = 3
     }
 
     internal class StockItem
@@ -37,6 +38,7 @@ namespace AutoRepairShop
 
         private const int TakeCarCommand = 1;
         private const int ShopCommand = 2;
+        private const int DevelopmentCommand = 3;
 
         public Illustrator()
         {
@@ -89,13 +91,18 @@ namespace AutoRepairShop
                         isChosen = true;
                         break;
 
+                    case DevelopmentCommand:
+                        command = DayCommand.Development;
+                        isChosen = true;
+                        break;
+
                     case ExitCommand:
                         command = DayCommand.EndDay;
                         isChosen = true;
                         break;
 
                     default:
-                        ShowError("Такой команды нет. Введите 1, 2 или 0.");
+                        ShowError("Такой команды нет. Введите 1, 2, 3 или 0.");
                         break;
                 }
             }
@@ -314,6 +321,84 @@ namespace AutoRepairShop
             Pause();
         }
 
+        public bool AskWarehouseUpgrade(Warehouse warehouse, ServiceDevelopment development)
+        {
+            Clear();
+
+            Top();
+            Row("РАЗВИТИЕ СЕРВИСА", ConsoleColor.Cyan);
+            Middle();
+            Row(TwoColumns("Склад:", warehouse.Capacity + " мест"), ConsoleColor.White);
+            Row(TwoColumns("Уровень склада:", development.WarehouseLevel + " из " + WarehouseUpgrade.MaxLevel), ConsoleColor.Gray);
+
+            if (development.CanUpgradeWarehouse)
+            {
+                Row(TwoColumns("Расширение:", "+" + WarehouseUpgrade.CapacityPerLevel + " мест"), ConsoleColor.Gray);
+                Row(TwoColumns("Цена:", Money(development.WarehouseUpgradePrice)), ConsoleColor.White);
+            }
+            else
+            {
+                Row("Склад максимального размера.", ConsoleColor.DarkGray);
+            }
+
+            Middle();
+            Row(ConfirmCommand + " - расширить склад",
+                development.CanUpgradeWarehouse ? ConsoleColor.Gray : ConsoleColor.DarkGray);
+            Row(ExitCommand + " - назад", ConsoleColor.DarkGray);
+            Bottom();
+
+            bool isAnswered = false;
+            bool isBuy = false;
+
+            while (isAnswered == false)
+            {
+                int input = ReadNumber("Решение");
+
+                if (input == ConfirmCommand)
+                {
+                    isBuy = true;
+                    isAnswered = true;
+                }
+                else if (input == ExitCommand)
+                {
+                    isBuy = false;
+                    isAnswered = true;
+                }
+                else
+                {
+                    ShowError("Введите 1 или 0.");
+                }
+            }
+
+            return isBuy;
+        }
+
+        public void ShowUpgradeResult(UpgradeReport report, decimal money, int capacity)
+        {
+            Top();
+
+            switch (report.Outcome)
+            {
+                case UpgradeOutcome.Bought:
+                    Row("[+] Склад расширен", ConsoleColor.Green);
+                    Row("    теперь мест: " + capacity, ConsoleColor.Green);
+                    Row("    потрачено: " + Money(report.Price), ConsoleColor.Green);
+                    Row("    в кассе: " + Money(money), ConsoleColor.White);
+                    break;
+
+                case UpgradeOutcome.NotEnoughMoney:
+                    Row("[-] Не хватает денег", ConsoleColor.Red);
+                    Row("    нужно: " + Money(report.Price) + ", в кассе: " + Money(money), ConsoleColor.Red);
+                    break;
+
+                default:
+                    Row("[!] Склад максимального размера", ConsoleColor.Yellow);
+                    break;
+            }
+
+            Bottom();
+        }
+
         public void Pause()
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -342,6 +427,8 @@ namespace AutoRepairShop
             Row(TwoColumns("Аренда:", Money(statistics.Rent)), ConsoleColor.Red);
             Row(TwoColumns("Закупки:", Money(statistics.PurchaseCosts)),
                 statistics.PurchaseCosts > 0m ? ConsoleColor.Red : ConsoleColor.DarkGray);
+            Row(TwoColumns("Улучшения:", Money(statistics.UpgradeCosts)),
+                statistics.UpgradeCosts > 0m ? ConsoleColor.Red : ConsoleColor.DarkGray);
             Row(TwoColumns("Прибыль:", Money(statistics.Profit)),
                 statistics.Profit >= 0m ? ConsoleColor.Green : ConsoleColor.Red);
             Bottom();
@@ -360,6 +447,7 @@ namespace AutoRepairShop
             Row(TakeCarCommand + " - принять машину",
                 carsInQueue > 0 ? ConsoleColor.Gray : ConsoleColor.DarkGray);
             Row(ShopCommand + " - магазин запчастей", ConsoleColor.Gray);
+            Row(DevelopmentCommand + " - развитие сервиса", ConsoleColor.Gray);
             Row(ExitCommand + " - закончить день", ConsoleColor.DarkGray);
             Bottom();
         }
