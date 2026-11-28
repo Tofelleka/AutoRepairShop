@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoRepairShop
 {
@@ -12,6 +13,8 @@ namespace AutoRepairShop
         private readonly Warehouse _warehouse;
         private readonly Garage _garage;
         private readonly CashRegister _cashRegister;
+
+        private readonly List<RepairReport> _dayReports = new List<RepairReport>();
 
         public AutoRepairManager(Illustrator illustrator)
         {
@@ -46,6 +49,8 @@ namespace AutoRepairShop
 
             while (isWork)
             {
+                _dayReports.Clear();
+
                 _carsQueue.AddCars();
 
                 bool isDayOver = false;
@@ -69,6 +74,9 @@ namespace AutoRepairShop
                             break;
                     }
                 }
+
+                _illustrator.ShowDayStatistics(BuildStatistics());
+                _illustrator.Pause();
 
                 isWork = _illustrator.AskNextDay(day, _cashRegister.Money);
 
@@ -95,6 +103,7 @@ namespace AutoRepairShop
                 : _garage.RefuseRepairs();
 
             _cashRegister.Apply(report.Total);
+            _dayReports.Add(report);
 
             _illustrator.ShowRepairReport(report, _cashRegister.Money);
             _illustrator.Pause();
@@ -157,20 +166,20 @@ namespace AutoRepairShop
 
         private List<StockItem> BuildStockItems()
         {
-            var items = new List<StockItem>();
-            var catalog = _partsFactory.GetAll();
+            return _partsFactory.GetAll()
+                .Select(pair => new StockItem(pair.Value, _warehouse.GetQuantityDetail(pair.Key)))
+                .ToList();
+        }
 
-            foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
-            {
-                Detail detail;
+        private DayStatistics BuildDayStatistics()
+        {
+            int cars = _dayReports.Count;
+            int repaired = _dayReports.Count(report => report.Fine == 0m);
+            int refused = _dayReports.Count(report => report.Fine > 0m);
+            decimal fines = _dayReports.Sum(report => report.Fine);
+            decimal revenue = _dayReports.Sum(report => report.Revenue);
 
-                if (catalog.TryGetValue(type, out detail))
-                {
-                    items.Add(new StockItem(detail, _warehouse.GetQuantityDetail(type)));
-                }
-            }
-
-            return items;
+            return new DayStatistics(cars, refused, repaired, fines, revenue);
         }
     }
 }

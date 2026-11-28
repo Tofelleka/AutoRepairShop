@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoRepairShop
 {
@@ -63,27 +64,14 @@ namespace AutoRepairShop
                 details[detail.Type] = detail;
             }
 
-            if (HasBrokenDetail(details) == false)
+            if (details.Values.Any(detail => detail.IsBroken) == false)
             {
-                var types = new List<DetailType>(details.Keys);
+                Detail randomDetail = details.Values.ElementAt(_random.Next(0, details.Count));
 
-                details[types[_random.Next(0, types.Count)]].BrokeDetail();
+                randomDetail.BrokeDetail();
             }
 
             return details;
-        }
-
-        private static bool HasBrokenDetail(Dictionary<DetailType, Detail> details)
-        {
-            foreach (var pair in details)
-            {
-                if (pair.Value.IsBroken)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

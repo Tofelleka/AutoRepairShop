@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoRepairShop
 {
@@ -27,17 +28,7 @@ namespace AutoRepairShop
                 throw new ArgumentNullException(nameof(car));
             }
 
-            var brokenDetails = new List<Detail>();
-
-            foreach (Detail detail in car.GetAllDetails().Values)
-            {
-                if (detail.IsBroken)
-                {
-                    brokenDetails.Add(detail);
-                }
-            }
-
-            return brokenDetails;
+            return car.GetAllDetails().Where(detail => detail.IsBroken).ToList();
         }
 
         public DetailRepairReport RepairDetail(DetailType type, Car car)

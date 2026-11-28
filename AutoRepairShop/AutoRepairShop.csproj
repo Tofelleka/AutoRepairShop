@@ -47,6 +47,7 @@
     <Compile Include="Factories\CarNames.cs" />
     <Compile Include="Factories\WarehouseFactory.cs" />
     <Compile Include="Game\AutoRepairManager.cs" />
+    <Compile Include="Game\DayStatistics.cs" />
     <Compile Include="UI\Illustrator.cs" />
     <Compile Include="Cars\Car.cs" />
     <Compile Include="Finance\CashRegister.cs" />

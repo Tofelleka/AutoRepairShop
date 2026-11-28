@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoRepairShop
 {
@@ -26,20 +27,7 @@ namespace AutoRepairShop
             }
         }
 
-        public int TotalQuantity
-        {
-            get
-            {
-                int count = 0;
-
-                foreach (var pair in _details)
-                {
-                    count += pair.Value.Count;
-                }
-
-                return count;
-            }
-        }
+        public int TotalQuantity => _details.Values.Sum(details => details.Count);
 
         public bool TryTake(DetailType type, out Detail newDetail)
         {

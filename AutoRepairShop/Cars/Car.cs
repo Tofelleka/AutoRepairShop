@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoRepairShop
 {
@@ -25,23 +26,12 @@ namespace AutoRepairShop
 
         public string Name { get; }
 
-        public IReadOnlyDictionary<DetailType, Detail> GetAllDetails() => new Dictionary<DetailType, Detail>(_details);
+        public IReadOnlyList<Detail> GetAllDetails() => _details.Values.ToList();
 
         public bool TryGetDetail(DetailType type, out Detail detail) => _details.TryGetValue(type, out detail);
 
         public void ReplaceDetail(Detail newDetail) => _details[newDetail.Type] = newDetail;
 
-        public bool CarIsBroken()
-        {
-            foreach (var pair in _details)
-            {
-                if (pair.Value.IsBroken)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+        public bool CarIsBroken() => _details.Values.Any(detail => detail.IsBroken);
     }
 }

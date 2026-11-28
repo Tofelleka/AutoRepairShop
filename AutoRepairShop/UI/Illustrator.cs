@@ -322,6 +322,25 @@ namespace AutoRepairShop
             Console.ReadLine();
         }
 
+        public void ShowDayStatistics(DayStatistics statistics)
+        {
+            Clear();
+
+            Top();
+            Row("ИТОГИ ДНЯ", ConsoleColor.Cyan);
+            Middle();
+            Row(TwoColumns("Машин обслужено:", statistics.Cars + " шт."), ConsoleColor.Gray);
+            Row(TwoColumns("Отремонтировано полностью:", statistics.Repaired + " шт."), ConsoleColor.Green);
+            Row(TwoColumns("Отказов и прерываний:", statistics.Refused + " шт."), ConsoleColor.DarkGray);
+            Middle();
+            Row(TwoColumns("Выручка:", Money(statistics.Revenue)), ConsoleColor.Gray);
+            Row(TwoColumns("Штрафы:", Money(statistics.Fines)),
+                statistics.Fines > 0m ? ConsoleColor.Red : ConsoleColor.DarkGray);
+            Row(TwoColumns("Итог:", Money(statistics.Profit)),
+                statistics.Profit >= 0m ? ConsoleColor.Green : ConsoleColor.Red);
+            Bottom();
+        }
+
         private void DrawDayScreen(int day, decimal money, int carsInQueue)
         {
             Clear();
