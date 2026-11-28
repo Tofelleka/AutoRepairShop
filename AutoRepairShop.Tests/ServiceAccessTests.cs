@@ -2,10 +2,10 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class ServiceAccessTests
+    public class ServiceAccessTests
     {
         [Test]
-        public static void EngineAndFluid_AlwaysAllowed()
+        public void EngineAndFluid_AlwaysAllowed()
         {
             var access = new ServiceAccess(false, false);
 
@@ -14,7 +14,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Body_RequiresBox()
+        public void Body_RequiresBox()
         {
             var locked = new ServiceAccess(false, false);
             var unlocked = new ServiceAccess(true, false);
@@ -24,7 +24,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Electric_RequiresBox()
+        public void Electric_RequiresBox()
         {
             var locked = new ServiceAccess(false, false);
             var unlocked = new ServiceAccess(false, true);

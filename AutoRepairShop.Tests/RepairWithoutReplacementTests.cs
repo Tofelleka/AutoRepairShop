@@ -2,10 +2,10 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class RepairWithoutReplacementTests
+    public class RepairWithoutReplacementTests
     {
         [Test]
-        public static void Repair_WorksWithoutPart()
+        public void Repair_WorksWithoutPart()
         {
             Warehouse warehouse = TestData.CreateEmptyWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);
@@ -23,7 +23,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Repair_NotRepairableDetail_Refused()
+        public void Repair_NotRepairableDetail_Refused()
         {
             Warehouse warehouse = TestData.CreateEmptyWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);
@@ -36,7 +36,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Repair_ChargeIsLowerThanReplacement()
+        public void Repair_ChargeIsLowerThanReplacement()
         {
             Warehouse warehouse = TestData.CreateEmptyWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);
@@ -52,7 +52,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void RepairableTypes_AreMarkedInCatalog()
+        public void RepairableTypes_AreMarkedInCatalog()
         {
             Assert.IsTrue(DetailsCatalog.CanRepair(DetailType.Starter), "стартер ремонтируется");
             Assert.IsTrue(DetailsCatalog.CanRepair(DetailType.CoolingRadiator), "радиатор ремонтируется");

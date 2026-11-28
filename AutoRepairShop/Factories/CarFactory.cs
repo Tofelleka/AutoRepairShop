@@ -20,7 +20,7 @@ namespace AutoRepairShop
             _random = random;
         }
 
-        public Car Create(CarBrand brand)
+        public Car Create(CarBrand brand, Season season)
         {
             List<string> names = new List<string>(CarNames.GetNames(brand));
 
@@ -29,12 +29,18 @@ namespace AutoRepairShop
                 throw new InvalidOperationException("Список названий машин пуст.");
             }
 
-            var details = new Dictionary<DetailType, Detail>();
             string name = names[_random.Next(0, names.Count)];
 
-            foreach (PartTemplate template in DetailsCatalog.GetTemplatesFor(brand, name))
+            return CreateForModel(brand, name, season);
+        }
+
+        public Car CreateForModel(CarBrand brand, string model, Season season)
+        {
+            var details = new Dictionary<DetailType, Detail>();
+
+            foreach (PartTemplate template in DetailsCatalog.GetTemplatesFor(brand, model))
             {
-                if (template.Category == PartCategory.Material)
+                if (template.Category == PartCategory.Material || template.Category == PartCategory.Tuning)
                 {
                     continue;
                 }
@@ -42,7 +48,7 @@ namespace AutoRepairShop
                 Brand partBrand = DetailsCatalog.Brands[_random.Next(0, DetailsCatalog.Brands.Count)];
                 var detail = new Detail(template, partBrand);
 
-                double baseChance = template.FaultChance ?? GetBaseChance(template.Category);
+                double baseChance = template.FaultChance ?? GetBaseChance(template.Category, template.Type, season);
                 double chance = baseChance * partBrand.FaultFactor;
 
                 if (_random.NextChance(chance))
@@ -65,11 +71,38 @@ namespace AutoRepairShop
                 details[types[_random.Next(0, types.Count)]].BrokeDetail();
             }
 
-            return new Car(brand, name, details);
+            var car = new Car(brand, model, details);
+
+            double tireChance = season == Season.Spring || season == Season.Autumn ? 0.55d : 0.05d;
+
+            if (_random.NextChance(tireChance))
+            {
+                car.NeedTireChange();
+            }
+
+            return car;
         }
 
-        private static double GetBaseChance(PartCategory category)
+        private static double GetBaseChance(PartCategory category, DetailType type, Season season)
         {
+            if (type == DetailType.Heater)
+            {
+                switch (season)
+                {
+                    case Season.Winter:
+                        return 0.45d;
+
+                    case Season.Autumn:
+                        return 0.30d;
+
+                    case Season.Spring:
+                        return 0.10d;
+
+                    default:
+                        return 0.05d;
+                }
+            }
+
             switch (category)
             {
                 case PartCategory.Engine:

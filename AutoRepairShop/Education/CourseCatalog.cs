@@ -7,8 +7,8 @@ namespace AutoRepairShop
     {
         private static readonly List<CourseInfo> Courses = new List<CourseInfo>
         {
-            new CourseInfo(CourseType.Izh, "Курсы: Иж", CarBrand.Izh, 500_000m, 200_000m),
-            new CourseInfo(CourseType.Volga, "Курсы: Волга", CarBrand.Volga, 1_000_000m, 400_000m)
+            new CourseInfo(CourseType.Izh, "Курсы: Иж", CarBrand.Izh, 500_000m, 80_000m),
+            new CourseInfo(CourseType.Volga, "Курсы: Волга", CarBrand.Volga, 1_000_000m, 150_000m)
         };
 
         public static IReadOnlyList<CourseInfo> All => Courses;

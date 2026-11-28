@@ -2,10 +2,10 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class GoalTests
+    public class GoalTests
     {
         [Test]
-        public static void Goal_NotReachedBelowTarget()
+        public void Goal_NotReachedBelowTarget()
         {
             var goal = new GameGoal("Дом", 5_000_000m);
 
@@ -13,7 +13,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Goal_ReachedAtTarget()
+        public void Goal_ReachedAtTarget()
         {
             var goal = new GameGoal("Дом", 5_000_000m);
 
@@ -21,7 +21,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Goal_ProgressClamped()
+        public void Goal_ProgressClamped()
         {
             var goal = new GameGoal("Дом", 5_000_000m);
 

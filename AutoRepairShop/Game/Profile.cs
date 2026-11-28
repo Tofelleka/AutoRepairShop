@@ -30,7 +30,9 @@ namespace AutoRepairShop
 
         public bool IsUnlocked(AchievementType type) => _achievements.IsUnlocked(type);
 
-        public static string GetPath() => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName);
+        public static string RootDirectory { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
+
+        public static string GetPath() => Path.Combine(RootDirectory, FileName);
 
         public static Profile Load() => Load(GetPath());
 

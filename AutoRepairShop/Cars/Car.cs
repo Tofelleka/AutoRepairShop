@@ -6,6 +6,7 @@ namespace AutoRepairShop
     internal class Car
     {
         private readonly Dictionary<DetailType, Detail> _details;
+        private readonly List<TuningType> _tunings = new List<TuningType>();
 
         public Car(CarBrand brand, string name, IReadOnlyDictionary<DetailType, Detail> details)
         {
@@ -32,6 +33,24 @@ namespace AutoRepairShop
         public CarBrand Brand { get; }
 
         public string Name { get; }
+
+        public bool NeedsTireChange { get; private set; }
+
+        public int OwnerId { get; private set; } = -1;
+
+        public void AssignOwner(int ownerId) => OwnerId = ownerId;
+
+        public IReadOnlyList<TuningType> Tunings => _tunings;
+
+        public bool HasTuning(TuningType type) => _tunings.Contains(type);
+
+        public void AddTuning(TuningType type) => _tunings.Add(type);
+
+        public void NeedTireChange() => NeedsTireChange = true;
+
+        public void RestoreTireChange(bool needsTireChange) => NeedsTireChange = needsTireChange;
+
+        public void CompleteTireChange() => NeedsTireChange = false;
 
         public IReadOnlyList<Detail> GetAllDetails() => new List<Detail>(_details.Values);
 

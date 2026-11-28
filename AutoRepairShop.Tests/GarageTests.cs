@@ -2,10 +2,10 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class GarageTests
+    public class GarageTests
     {
         [Test]
-        public static void RepairBrokenDetail_PaysPayout()
+        public void RepairBrokenDetail_PaysPayout()
         {
             Warehouse warehouse = TestData.CreateWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);
@@ -20,7 +20,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void RepairBrokenDetail_TakesOneFromWarehouse()
+        public void RepairBrokenDetail_TakesOneFromWarehouse()
         {
             Warehouse warehouse = TestData.CreateWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);
@@ -34,7 +34,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void RepairHealthyDetail_NoPayout()
+        public void RepairHealthyDetail_NoPayout()
         {
             Warehouse warehouse = TestData.CreateWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);
@@ -50,7 +50,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void RepairWithoutStock_NoDetailInStock()
+        public void RepairWithoutStock_NoDetailInStock()
         {
             Warehouse warehouse = TestData.CreateEmptyWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);
@@ -63,7 +63,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void RepairBodyDetail_WorksLikeEngine()
+        public void RepairBodyDetail_WorksLikeEngine()
         {
             Warehouse warehouse = TestData.CreateWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);
@@ -77,17 +77,17 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void RefuseCar_FixedFine()
+        public void RefuseCar_FixedFine()
         {
             Garage garage = TestData.CreateGarage(TestData.CreateWarehouse());
 
             RepairReport report = garage.RefuseRepairs();
 
-            Assert.AreEqual(1000m, report.Fine, "штраф за отказ до ремонта фиксированный");
+            Assert.AreEqual(2000m, report.Fine, "штраф за отказ до ремонта фиксированный");
         }
 
         [Test]
-        public static void RefuseFurther_FineForEachRemaining()
+        public void RefuseFurther_FineForEachRemaining()
         {
             Garage garage = TestData.CreateGarage(TestData.CreateWarehouse());
             Car car = TestData.CreateCarWithBroken(DetailType.Starter, DetailType.Generator);
@@ -95,11 +95,11 @@ namespace AutoRepairShop.Tests
             RepairReport report = garage.RefuseFurtherRepairs(5000m, car);
 
             Assert.AreEqual(5000m, report.Revenue, "выручка сохраняется");
-            Assert.AreEqual(200m, report.Fine, "100 за каждую непочиненную деталь");
+            Assert.AreEqual(600m, report.Fine, "300 за каждую непочиненную деталь");
         }
 
         [Test]
-        public static void RepairWithSkillRate_PaysMoreForWork()
+        public void RepairWithSkillRate_PaysMoreForWork()
         {
             Warehouse warehouse = TestData.CreateWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);
@@ -112,7 +112,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void CheapFluid_BreaksRelatedDetail()
+        public void CheapFluid_BreaksRelatedDetail()
         {
             Warehouse warehouse = TestData.CreateEmptyWarehouse();
             PartTemplate oil = DetailsCatalog.GetTemplate(DetailType.EngineOil);
@@ -129,7 +129,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void GoodFluid_DoesNotBreakRelatedDetail()
+        public void GoodFluid_DoesNotBreakRelatedDetail()
         {
             Warehouse warehouse = TestData.CreateWarehouse();
             Garage garage = TestData.CreateGarage(warehouse);

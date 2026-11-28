@@ -18,7 +18,14 @@ namespace AutoRepairShop
             ShiftStatistics shift,
             int bodyBusyUntilDay,
             IReadOnlyCollection<CourseType> courses,
-            decimal earned)
+            decimal earned,
+            IReadOnlyList<DeliveryOrder> deliveries,
+            IReadOnlyList<Car> queueCars,
+            Car postponedCar,
+            IReadOnlyDictionary<int, int> ownerScores,
+            IReadOnlyDictionary<int, int> ownerFlags,
+            IReadOnlyDictionary<int, int> ownerReferrers,
+            Car currentCar)
         {
             Money = money;
             Day = day;
@@ -28,6 +35,13 @@ namespace AutoRepairShop
             BodyBusyUntilDay = bodyBusyUntilDay;
             Courses = courses;
             Earned = earned;
+            Deliveries = deliveries;
+            QueueCars = queueCars;
+            PostponedCar = postponedCar;
+            OwnerScores = ownerScores;
+            OwnerFlags = ownerFlags;
+            OwnerReferrers = ownerReferrers;
+            CurrentCar = currentCar;
         }
 
         public decimal Money { get; }
@@ -46,6 +60,22 @@ namespace AutoRepairShop
 
         public decimal Earned { get; }
 
+        public IReadOnlyList<DeliveryOrder> Deliveries { get; }
+
+        public IReadOnlyList<Car> QueueCars { get; }
+
+        public Car PostponedCar { get; }
+
+        public IReadOnlyDictionary<int, int> OwnerScores { get; }
+
+        public IReadOnlyDictionary<int, int> OwnerFlags { get; }
+
+        public IReadOnlyDictionary<int, int> OwnerReferrers { get; }
+
+        public Car CurrentCar { get; }
+
+        public static string RootDirectory { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
+
         public static string GetPath(int slot)
         {
             if (slot < 1 || slot > 3)
@@ -53,7 +83,7 @@ namespace AutoRepairShop
                 throw new ArgumentOutOfRangeException(nameof(slot), "Номер слота должен быть от 1 до 3.");
             }
 
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "save" + slot + ".txt");
+            return Path.Combine(RootDirectory, "save" + slot + ".txt");
         }
 
         public static bool Exists(string path) => File.Exists(path);
@@ -79,6 +109,11 @@ namespace AutoRepairShop
             builder.AppendLine("bodybusy=" + save.BodyBusyUntilDay);
             builder.AppendLine("courses=" + JoinCourses(save.Courses));
             builder.AppendLine("earned=" + save.Earned.ToString(CultureInfo.InvariantCulture));
+            builder.AppendLine("deliveries=" + JoinDeliveries(save.Deliveries));
+            builder.AppendLine("queue=" + JoinCars(save.QueueCars));
+            builder.AppendLine("postponed=" + (save.PostponedCar == null ? string.Empty : CarSerializer.Serialize(save.PostponedCar)));
+            builder.AppendLine("owners=" + JoinOwners(save.OwnerScores, save.OwnerFlags, save.OwnerReferrers));
+            builder.AppendLine("current=" + (save.CurrentCar == null ? string.Empty : CarSerializer.Serialize(save.CurrentCar)));
 
             string tempPath = path + ".tmp";
 
@@ -112,6 +147,13 @@ namespace AutoRepairShop
                 int bodyBusyUntilDay = 0;
                 decimal earned = 0m;
                 var courses = new List<CourseType>();
+                var deliveries = new List<DeliveryOrder>();
+                var queueCars = new List<Car>();
+                var ownerScores = new Dictionary<int, int>();
+                var ownerFlags = new Dictionary<int, int>();
+                var ownerReferrers = new Dictionary<int, int>();
+                Car postponedCar = null;
+                Car currentCar = null;
                 bool hasKnownField = false;
                 var levels = new Dictionary<UpgradeType, int>();
                 var stock = new Dictionary<DetailType, int>();
@@ -175,6 +217,39 @@ namespace AutoRepairShop
                             earned = decimal.Parse(value, CultureInfo.InvariantCulture);
                             hasKnownField = true;
                             break;
+
+                        case "deliveries":
+                            ParseDeliveries(value, deliveries);
+                            hasKnownField = true;
+                            break;
+
+                        case "owners":
+                            ParseOwners(value, ownerScores, ownerFlags, ownerReferrers);
+                            hasKnownField = true;
+                            break;
+
+                        case "current":
+                            if (string.IsNullOrEmpty(value) == false)
+                            {
+                                currentCar = CarSerializer.Deserialize(value);
+                            }
+
+                            hasKnownField = true;
+                            break;
+
+                        case "queue":
+                            ParseCars(value, queueCars);
+                            hasKnownField = true;
+                            break;
+
+                        case "postponed":
+                            if (string.IsNullOrEmpty(value) == false)
+                            {
+                                postponedCar = CarSerializer.Deserialize(value);
+                            }
+
+                            hasKnownField = true;
+                            break;
                     }
                 }
 
@@ -185,7 +260,22 @@ namespace AutoRepairShop
                     return false;
                 }
 
-                save = new GameSave(money, day, levels, stock, shift, bodyBusyUntilDay, courses, earned);
+                save = new GameSave(
+                    money,
+                    day,
+                    levels,
+                    stock,
+                    shift,
+                    bodyBusyUntilDay,
+                    courses,
+                    earned,
+                    deliveries,
+                    queueCars,
+                    postponedCar,
+                    ownerScores,
+                    ownerFlags,
+                    ownerReferrers,
+                    currentCar);
 
                 return true;
             }
@@ -198,7 +288,7 @@ namespace AutoRepairShop
         }
 
         public static ShiftStatistics CreateEmptyShift() =>
-            new ShiftStatistics(0, 0, 0, 0, 0m, 0m, 0m, 0m, 0m);
+            new ShiftStatistics(0, 0, 0, 0, 0m, 0m, 0m, 0m, 0m, 0);
 
         private static string JoinLevels(IReadOnlyDictionary<UpgradeType, int> levels)
         {
@@ -222,6 +312,115 @@ namespace AutoRepairShop
             }
 
             return string.Join(",", parts);
+        }
+
+        private static string JoinOwners(
+            IReadOnlyDictionary<int, int> scores,
+            IReadOnlyDictionary<int, int> flags,
+            IReadOnlyDictionary<int, int> referrers)
+        {
+            var parts = new List<string>();
+
+            foreach (KeyValuePair<int, int> pair in scores)
+            {
+                int flagValue = flags.TryGetValue(pair.Key, out int stored) ? stored : 2;
+                int referrer = referrers.TryGetValue(pair.Key, out int storedReferrer) ? storedReferrer : -1;
+
+                parts.Add(pair.Key.ToString(CultureInfo.InvariantCulture) + ":" +
+                    pair.Value.ToString(CultureInfo.InvariantCulture) + ":" +
+                    flagValue.ToString(CultureInfo.InvariantCulture) + ":" +
+                    referrer.ToString(CultureInfo.InvariantCulture));
+            }
+
+            return string.Join(",", parts);
+        }
+
+        private static void ParseOwners(
+            string text,
+            Dictionary<int, int> scores,
+            Dictionary<int, int> flags,
+            Dictionary<int, int> referrers)
+        {
+            foreach (string item in text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] parts = item.Split(':');
+
+                if (parts.Length < 2)
+                {
+                    continue;
+                }
+
+                if (int.TryParse(parts[0], out int id) == false || int.TryParse(parts[1], out int value) == false)
+                {
+                    continue;
+                }
+
+                scores[id] = value;
+                flags[id] = parts.Length >= 3 && int.TryParse(parts[2], out int flagValue) ? flagValue : 2;
+                referrers[id] = parts.Length >= 4 && int.TryParse(parts[3], out int referrerId) ? referrerId : -1;
+            }
+        }
+
+        private static string JoinCars(IReadOnlyList<Car> cars)
+        {
+            var parts = new List<string>();
+
+            foreach (Car car in cars)
+            {
+                parts.Add(CarSerializer.Serialize(car));
+            }
+
+            return string.Join("|", parts);
+        }
+
+        private static void ParseCars(string text, List<Car> cars)
+        {
+            foreach (string item in text.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                try
+                {
+                    cars.Add(CarSerializer.Deserialize(item));
+                }
+                catch (FormatException)
+                {
+                }
+            }
+        }
+
+        private static string JoinDeliveries(IReadOnlyList<DeliveryOrder> deliveries)
+        {
+            var parts = new List<string>();
+
+            foreach (DeliveryOrder order in deliveries)
+            {
+                parts.Add(
+                    order.Type + ":" + order.BrandName + ":" + order.ArrivalDay.ToString(CultureInfo.InvariantCulture));
+            }
+
+            return string.Join(";", parts);
+        }
+
+        private static void ParseDeliveries(string text, List<DeliveryOrder> deliveries)
+        {
+            foreach (string item in text.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] parts = item.Split(':');
+
+                if (parts.Length != 3)
+                {
+                    continue;
+                }
+
+                if (Enum.TryParse(parts[0], out DetailType type) == false)
+                {
+                    continue;
+                }
+
+                deliveries.Add(new DeliveryOrder(
+                    type,
+                    parts[1],
+                    int.Parse(parts[2], CultureInfo.InvariantCulture)));
+            }
         }
 
         private static string JoinCourses(IReadOnlyCollection<CourseType> courses)
@@ -259,7 +458,8 @@ namespace AutoRepairShop
                 shift.Fines.ToString(CultureInfo.InvariantCulture),
                 shift.Rent.ToString(CultureInfo.InvariantCulture),
                 shift.PurchaseCosts.ToString(CultureInfo.InvariantCulture),
-                shift.UpgradeCosts.ToString(CultureInfo.InvariantCulture)
+                shift.UpgradeCosts.ToString(CultureInfo.InvariantCulture),
+                shift.Referrals.ToString(CultureInfo.InvariantCulture)
             };
 
             return string.Join(";", parts);
@@ -269,7 +469,7 @@ namespace AutoRepairShop
         {
             string[] parts = text.Split(';');
 
-            if (parts.Length != 9)
+            if (parts.Length != 10)
             {
                 throw new FormatException("Некорректная статистика смены в сохранении.");
             }
@@ -283,7 +483,8 @@ namespace AutoRepairShop
                 decimal.Parse(parts[5], CultureInfo.InvariantCulture),
                 decimal.Parse(parts[6], CultureInfo.InvariantCulture),
                 decimal.Parse(parts[7], CultureInfo.InvariantCulture),
-                decimal.Parse(parts[8], CultureInfo.InvariantCulture));
+                decimal.Parse(parts[8], CultureInfo.InvariantCulture),
+                int.Parse(parts[9], CultureInfo.InvariantCulture));
         }
 
         private static void ParseLevels(string text, Dictionary<UpgradeType, int> levels)

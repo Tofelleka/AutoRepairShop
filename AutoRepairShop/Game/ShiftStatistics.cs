@@ -11,7 +11,8 @@ namespace AutoRepairShop
             decimal fines,
             decimal rent,
             decimal purchaseCosts,
-            decimal upgradeCosts)
+            decimal upgradeCosts,
+            int referrals)
         {
             Days = days;
             Cars = cars;
@@ -22,6 +23,7 @@ namespace AutoRepairShop
             Rent = rent;
             PurchaseCosts = purchaseCosts;
             UpgradeCosts = upgradeCosts;
+            Referrals = referrals;
         }
 
         public int Days { get; }
@@ -41,6 +43,8 @@ namespace AutoRepairShop
         public decimal PurchaseCosts { get; }
 
         public decimal UpgradeCosts { get; }
+
+        public int Referrals { get; }
 
         public decimal NetRevenue => Revenue - Fines;
 

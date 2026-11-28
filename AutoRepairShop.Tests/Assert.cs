@@ -1,17 +1,12 @@
 using System;
+using Xunit;
+using Xunit.Sdk;
 
 namespace AutoRepairShop.Tests
 {
     [AttributeUsage(AttributeTargets.Method)]
-    internal sealed class TestAttribute : Attribute
+    public sealed class TestAttribute : FactAttribute
     {
-    }
-
-    internal sealed class AssertException : Exception
-    {
-        public AssertException(string message) : base(message)
-        {
-        }
     }
 
     internal static class Assert
@@ -20,15 +15,17 @@ namespace AutoRepairShop.Tests
         {
             if (condition == false)
             {
-                throw new AssertException(message);
+                throw new XunitException(message);
             }
         }
+
+        public static void IsFalse(bool condition, string message) => IsTrue(condition == false, message);
 
         public static void AreEqual<T>(T expected, T actual, string message)
         {
             if (Equals(expected, actual) == false)
             {
-                throw new AssertException(
+                throw new XunitException(
                     message + " (ожидалось: " + expected + ", получено: " + actual + ")");
             }
         }
@@ -45,11 +42,11 @@ namespace AutoRepairShop.Tests
             }
             catch (Exception exception)
             {
-                throw new AssertException(
+                throw new XunitException(
                     message + " (получено другое исключение: " + exception.GetType().Name + ")");
             }
 
-            throw new AssertException(message + " (исключение не выброшено)");
+            throw new XunitException(message + " (исключение не выброшено)");
         }
     }
 }

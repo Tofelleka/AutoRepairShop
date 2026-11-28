@@ -3,30 +3,26 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class ShopTests
+    public class ShopTests
     {
         [Test]
-        public static void Buy_SpendsMoneyAndAddsStock()
+        public void Buy_SpendsMoneyAndSchedulesDelivery()
         {
-            Warehouse warehouse = TestData.CreateWarehouse();
             var cash = new CashRegister(100_000m);
-            var shop = new PartsShop(warehouse, cash);
-            int before = warehouse.GetQuantityDetail(DetailType.Clutch);
+            var shop = new PartsShop(cash);
             decimal price = DetailsCatalog.GetTemplate(DetailType.Clutch).GetPrice(DetailsCatalog.StandardBrand);
 
             PurchaseReport report = shop.Buy(DetailType.Clutch, DetailsCatalog.StandardBrand);
 
-            Assert.AreEqual(PurchaseOutcome.Bought, report.Outcome, "покупка должна пройти");
-            Assert.AreEqual(100_000m - price, cash.Money, "деньги списаны");
-            Assert.AreEqual(before + 1, warehouse.GetQuantityDetail(DetailType.Clutch), "деталь на складе");
+            Assert.AreEqual(PurchaseOutcome.Bought, report.Outcome, "заказ должен пройти");
+            Assert.AreEqual(100_000m - price, cash.Money, "деньги списаны сразу");
         }
 
         [Test]
-        public static void Buy_PremiumCostsMoreThanEconomy()
+        public void Buy_PremiumCostsMoreThanEconomy()
         {
-            Warehouse warehouse = TestData.CreateWarehouse();
             var cash = new CashRegister(1_000_000m);
-            var shop = new PartsShop(warehouse, cash);
+            var shop = new PartsShop(cash);
             decimal start = cash.Money;
 
             shop.Buy(DetailType.Starter, DetailsCatalog.Brands[0]);
@@ -41,45 +37,49 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Buy_NotEnoughMoney()
+        public void Buy_NotEnoughMoney()
         {
-            Warehouse warehouse = TestData.CreateWarehouse();
             var cash = new CashRegister(100m);
-            var shop = new PartsShop(warehouse, cash);
-            int before = warehouse.GetQuantityDetail(DetailType.Clutch);
+            var shop = new PartsShop(cash);
 
             PurchaseReport report = shop.Buy(DetailType.Clutch, DetailsCatalog.StandardBrand);
 
             Assert.AreEqual(PurchaseOutcome.NotEnoughMoney, report.Outcome, "денег не хватает");
             Assert.AreEqual(100m, cash.Money, "деньги не списаны");
-            Assert.AreEqual(before, warehouse.GetQuantityDetail(DetailType.Clutch), "склад не изменился");
         }
 
         [Test]
-        public static void Buy_WarehouseIsFull()
+        public void Buy_UnknownType_Refused()
         {
-            var quantities = new Dictionary<DetailType, int> { { DetailType.Starter, 1 } };
-            Warehouse warehouse = new WarehouseFactory(new PartsFactory()).Create(1, quantities);
-            var cash = new CashRegister(1_000_000m);
-            var shop = new PartsShop(warehouse, cash);
-
-            PurchaseReport report = shop.Buy(DetailType.Generator, DetailsCatalog.StandardBrand);
-
-            Assert.AreEqual(PurchaseOutcome.WarehouseIsFull, report.Outcome, "склад заполнен");
-            Assert.AreEqual(1_000_000m, cash.Money, "деньги не списаны");
-            Assert.AreEqual(1, warehouse.TotalQuantity, "запас не вырос");
-        }
-
-        [Test]
-        public static void Buy_UnknownType_Refused()
-        {
-            Warehouse warehouse = TestData.CreateWarehouse();
             var cash = new CashRegister(100_000m);
-            var shop = new PartsShop(warehouse, cash);
+            var shop = new PartsShop(cash);
 
             PurchaseReport report = shop.Buy((DetailType)99, DetailsCatalog.StandardBrand);
 
             Assert.AreEqual(PurchaseOutcome.UnknownDetail, report.Outcome, "неизвестный тип отклоняется");
+        }
+
+        [Test]
+        public void Buy_AllShopPartsHaveValidTemplates()
+        {
+            foreach (PartTemplate template in DetailsCatalog.Templates)
+            {
+                Detail detail = new Detail(template, DetailsCatalog.StandardBrand);
+
+                Assert.IsTrue(detail.Price > 0m, "цена должна быть положительной: " + template.Name);
+                Assert.IsTrue(detail.ReplacementCost > 0m, "работа должна быть положительной: " + template.Name);
+            }
+        }
+
+        [Test]
+        public void Buy_BodyPartsAreBrandSpecific()
+        {
+            var cash = new CashRegister(1_000_000m);
+            var shop = new PartsShop(cash);
+
+            PurchaseReport report = shop.Buy(DetailType.VolgaDoor, DetailsCatalog.StandardBrand);
+
+            Assert.AreEqual(PurchaseOutcome.Bought, report.Outcome, "дверь Волги заказывается");
         }
     }
 }

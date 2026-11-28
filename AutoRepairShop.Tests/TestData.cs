@@ -29,7 +29,7 @@ namespace AutoRepairShop.Tests
 
             foreach (PartTemplate template in DetailsCatalog.GetTemplatesFor(brand))
             {
-                if (template.Category != PartCategory.Material)
+                if (template.Category != PartCategory.Material && template.Category != PartCategory.Tuning)
                 {
                     count++;
                 }

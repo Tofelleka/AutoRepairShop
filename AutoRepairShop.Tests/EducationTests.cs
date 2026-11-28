@@ -2,16 +2,16 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class EducationTests
+    public class EducationTests
     {
         [Test]
-        public static void CourseCatalog_HasTwoCourses()
+        public void CourseCatalog_HasTwoCourses()
         {
             Assert.AreEqual(2, CourseCatalog.All.Count, "два курса: Иж и Волга");
         }
 
         [Test]
-        public static void CourseThresholds()
+        public void CourseThresholds()
         {
             Assert.AreEqual(500_000m, CourseCatalog.Get(CourseType.Izh).RequiredEarned,
                 "курсы Иж открываются после 500 000");
@@ -21,7 +21,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Education_PassIsIdempotent()
+        public void Education_PassIsIdempotent()
         {
             var education = new Education();
 
@@ -32,7 +32,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Education_UnlocksBrand()
+        public void Education_UnlocksBrand()
         {
             var education = new Education();
 
@@ -45,7 +45,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void CourseCatalog_MapsBrands()
+        public void CourseCatalog_MapsBrands()
         {
             Assert.AreEqual(CarBrand.Izh, CourseCatalog.Get(CourseType.Izh).Brand, "курс Иж открывает Иж");
             Assert.AreEqual(CarBrand.Volga, CourseCatalog.Get(CourseType.Volga).Brand, "курс Волга открывает Волгу");

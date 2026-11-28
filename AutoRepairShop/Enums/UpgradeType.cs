@@ -6,6 +6,7 @@ namespace AutoRepairShop
         Marketing = 1,
         Skill = 2,
         BodyBox = 3,
-        ElectricBox = 4
+        ElectricBox = 4,
+        TuningBox = 5
     }
 }

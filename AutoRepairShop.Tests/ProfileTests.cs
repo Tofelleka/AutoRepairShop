@@ -2,10 +2,10 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class ProfileTests
+    public class ProfileTests
     {
         [Test]
-        public static void Unlock_ReturnsTrueOnlyFirstTime()
+        public void Unlock_ReturnsTrueOnlyFirstTime()
         {
             var profile = new Profile(0m, 0, new AchievementType[0]);
 
@@ -14,7 +14,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Record_UpdatesOnlyIfBetter()
+        public void Record_UpdatesOnlyIfBetter()
         {
             var profile = new Profile(1000m, 3, new AchievementType[0]);
 
@@ -29,7 +29,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Profile_RoundTrip()
+        public void Profile_RoundTrip()
         {
             string path = TestFile.CreatePath("ars-profile");
 

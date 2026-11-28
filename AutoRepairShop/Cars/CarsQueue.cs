@@ -6,7 +6,7 @@ namespace AutoRepairShop
     internal class CarsQueue
     {
         public const int MinCarsPerDay = 1;
-        public const int DefaultMaxCarsPerDay = 5;
+        public const int DefaultMaxCarsPerDay = 9;
 
         private readonly Queue<Car> _cars = new Queue<Car>();
         private readonly CarFactory _carFactory;
@@ -32,7 +32,7 @@ namespace AutoRepairShop
 
         public bool HasCars => _cars.Count > 0;
 
-        public void AddCars(int maxCarsPerDay, IReadOnlyList<CarBrand> brands)
+        public void AddCars(int maxCarsPerDay, IReadOnlyList<CarBrand> brands, Season season)
         {
             if (maxCarsPerDay < MinCarsPerDay)
             {
@@ -50,8 +50,18 @@ namespace AutoRepairShop
             {
                 CarBrand brand = brands[_random.Next(0, brands.Count)];
 
-                _cars.Enqueue(_carFactory.Create(brand));
+                _cars.Enqueue(_carFactory.Create(brand, season));
             }
+        }
+
+        public void AddCar(Car car)
+        {
+            if (car == null)
+            {
+                throw new ArgumentNullException(nameof(car));
+            }
+
+            _cars.Enqueue(car);
         }
 
         public Car DequeueCar()
@@ -62,6 +72,26 @@ namespace AutoRepairShop
             }
 
             return _cars.Dequeue();
+        }
+
+        public IReadOnlyList<Car> GetCars() => new List<Car>(_cars);
+
+        public void AddCarFirst(Car car)
+        {
+            if (car == null)
+            {
+                throw new ArgumentNullException(nameof(car));
+            }
+
+            var rest = new List<Car>(_cars);
+
+            _cars.Clear();
+            _cars.Enqueue(car);
+
+            foreach (Car item in rest)
+            {
+                _cars.Enqueue(item);
+            }
         }
     }
 }

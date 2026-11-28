@@ -5,6 +5,7 @@ namespace AutoRepairShop
     internal class Detail
     {
         private const decimal RepairWorkFactor = 0.6m;
+        private const decimal PartsMarkup = 1.1m;
 
         public Detail(PartTemplate template, Brand brand)
         {
@@ -61,8 +62,9 @@ namespace AutoRepairShop
             }
 
             decimal work = Math.Round(ReplacementCost * workRate, 0, MidpointRounding.AwayFromZero);
+            decimal part = Math.Round(Price * PartsMarkup, 0, MidpointRounding.AwayFromZero);
 
-            return Price + work + ExtraWork;
+            return part + work + ExtraWork;
         }
 
         public decimal GetRepairCharge(decimal workRate)
@@ -85,6 +87,16 @@ namespace AutoRepairShop
         {
             IsBroken = false;
             IsRepairable = false;
+        }
+
+        public void RestoreState(bool isBroken, bool isRepairable)
+        {
+            IsBroken = isBroken;
+
+            if (isBroken && isRepairable)
+            {
+                IsRepairable = true;
+            }
         }
     }
 }

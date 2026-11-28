@@ -2,16 +2,16 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class UpgradeTests
+    public class UpgradeTests
     {
         [Test]
-        public static void Catalog_HasFiveUpgrades()
+        public void Catalog_HasSixUpgrades()
         {
-            Assert.AreEqual(5, UpgradeCatalog.All.Count, "в каталоге пять улучшений");
+            Assert.AreEqual(6, UpgradeCatalog.All.Count, "в каталоге шесть улучшений");
         }
 
         [Test]
-        public static void Buy_IncreasesLevelAndSpends()
+        public void Buy_IncreasesLevelAndSpends()
         {
             var development = new ServiceDevelopment();
             var cash = new CashRegister(1_000_000m);
@@ -26,7 +26,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Buy_MaxLevelReached()
+        public void Buy_MaxLevelReached()
         {
             var development = new ServiceDevelopment();
             var cash = new CashRegister(10_000_000m);
@@ -43,7 +43,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Boxes_HaveThreeLevels()
+        public void Boxes_HaveThreeLevels()
         {
             var development = new ServiceDevelopment();
             var cash = new CashRegister(10_000_000m);
@@ -60,7 +60,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Buy_NotEnoughMoney()
+        public void Buy_NotEnoughMoney()
         {
             var development = new ServiceDevelopment();
             var cash = new CashRegister(100m);
@@ -74,7 +74,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Development_RestoresSavedLevels()
+        public void Development_RestoresSavedLevels()
         {
             var levels = new System.Collections.Generic.Dictionary<UpgradeType, int>
             {

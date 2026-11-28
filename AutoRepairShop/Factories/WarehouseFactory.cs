@@ -23,9 +23,9 @@ namespace AutoRepairShop
         {
             var quantities = new Dictionary<DetailType, int>();
 
-            foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
+            foreach (PartTemplate template in DetailsCatalog.Templates)
             {
-                quantities[type] = InitialQuantityPerType;
+                quantities[template.Type] = InitialQuantityPerType;
             }
 
             return Create(Warehouse.DefaultCapacity, quantities);
@@ -44,20 +44,28 @@ namespace AutoRepairShop
             }
 
             var details = new Dictionary<DetailType, List<Detail>>();
+
+            foreach (PartTemplate template in DetailsCatalog.Templates)
+            {
+                details[template.Type] = new List<Detail>();
+            }
+
             int totalQuantity = 0;
 
-            foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
+            foreach (KeyValuePair<DetailType, int> pair in quantities)
             {
-                var detailList = new List<Detail>();
-                int quantity = quantities.TryGetValue(type, out int savedQuantity) ? savedQuantity : 0;
-
-                for (int i = 0; i < quantity && totalQuantity < capacity; i++)
+                if (DetailsCatalog.TryGetTemplate(pair.Key, out PartTemplate _) == false)
                 {
-                    detailList.Add(_partsFactory.Create(type));
-                    totalQuantity++;
+                    continue;
                 }
 
-                details[type] = detailList;
+                List<Detail> detailList = details[pair.Key];
+
+                for (int i = 0; i < pair.Value && totalQuantity < capacity; i++)
+                {
+                    detailList.Add(_partsFactory.Create(pair.Key));
+                    totalQuantity++;
+                }
             }
 
             return new Warehouse(details, capacity);

@@ -6,6 +6,8 @@ namespace AutoRepairShop
 {
     internal class AutoRepairManager
     {
+        private const int SeasonLengthDays = 15;
+
         private readonly Illustrator _illustrator;
         private readonly PartsShop _partsShop;
         private readonly CarsQueue _carsQueue;
@@ -18,17 +20,24 @@ namespace AutoRepairShop
         private readonly IRandomSource _random;
         private readonly Profile _profile;
         private readonly Education _education;
+        private readonly CarFactory _carFactory;
+        private readonly List<Owner> _owners;
         private readonly string _savePath;
         private readonly bool _isSaveLoaded;
         private readonly ShiftStatistics _savedShift;
 
         private readonly List<RepairReport> _dayReports = new List<RepairReport>();
         private readonly List<DayStatistics> _dayStatistics = new List<DayStatistics>();
+        private readonly List<DeliveryOrder> _deliveries = new List<DeliveryOrder>();
 
         private decimal _dayPurchaseCosts;
         private decimal _dayUpgradeCosts;
         private decimal _totalEarned;
         private int _bodyBoxBusyUntilDay;
+        private Car _postponedCar;
+        private Car _currentCar;
+        private int _referralsToday;
+        private int _totalReferrals;
         private int _day;
 
         public AutoRepairManager(Illustrator illustrator, int saveSlot, bool continueSavedGame)
@@ -55,8 +64,13 @@ namespace AutoRepairShop
                 ? new Education()
                 : new Education(save.Courses);
 
+            if (save != null)
+            {
+                _deliveries.AddRange(save.Deliveries);
+            }
+
             var partsFactory = new PartsFactory();
-            var carFactory = new CarFactory(_random);
+            _carFactory = new CarFactory(_random);
             var warehouseFactory = new WarehouseFactory(partsFactory);
 
             if (save == null)
@@ -75,11 +89,46 @@ namespace AutoRepairShop
             int capacity = Warehouse.DefaultCapacity
                 + UpgradeCatalog.Get(UpgradeType.Warehouse).EffectPerLevel * _serviceDevelopment.GetLevel(UpgradeType.Warehouse);
 
-            _carsQueue = new CarsQueue(carFactory, _random);
+            _carsQueue = new CarsQueue(_carFactory, _random);
             _warehouse = save == null ? warehouseFactory.Create() : warehouseFactory.Create(capacity, save.Stock);
             _upgradeShop = new UpgradeShop(_cashRegister, _serviceDevelopment);
             _garage = new Garage(_warehouse, _random);
-            _partsShop = new PartsShop(_warehouse, _cashRegister);
+            _partsShop = new PartsShop(_cashRegister);
+
+            _owners = OwnerBase.CreateAll();
+
+            if (save != null)
+            {
+                foreach (KeyValuePair<int, int> pair in save.OwnerScores)
+                {
+                    if (pair.Key >= 0 && pair.Key < _owners.Count)
+                    {
+                        _owners[pair.Key].RestoreRelationship(pair.Value);
+                    }
+                }
+
+                foreach (KeyValuePair<int, int> pair in save.OwnerFlags)
+                {
+                    if (pair.Key >= 0 && pair.Key < _owners.Count)
+                    {
+                        int referrer = save.OwnerReferrers.TryGetValue(pair.Key, out int stored) ? stored : -1;
+
+                        _owners[pair.Key].RestoreFlags((pair.Value & 1) != 0, (pair.Value & 2) != 0, referrer);
+                    }
+                }
+
+                foreach (Car queuedCar in save.QueueCars)
+                {
+                    _carsQueue.AddCar(queuedCar);
+                }
+
+                _postponedCar = save.PostponedCar;
+
+                if (save.CurrentCar != null)
+                {
+                    _carsQueue.AddCarFirst(save.CurrentCar);
+                }
+            }
 
             if (save == null)
             {
@@ -98,8 +147,18 @@ namespace AutoRepairShop
                 _dayReports.Clear();
                 _dayPurchaseCosts = 0m;
                 _dayUpgradeCosts = 0m;
+                _referralsToday = 0;
 
-                _carsQueue.AddCars(GetMaxCarsPerDay(), BuildAvailableBrands());
+                DeliverOrders();
+
+                if (_postponedCar != null)
+                {
+                    _carsQueue.AddCar(_postponedCar);
+                    _postponedCar = null;
+                }
+
+                AddOwnerCars();
+                TryReferral();
 
                 bool isDayOver = false;
 
@@ -110,7 +169,8 @@ namespace AutoRepairShop
                         _cashRegister.Money,
                         _carsQueue.Count,
                         _goal,
-                        GetBoxStatus());
+                        GetBoxStatus(),
+                        GetSeasonText());
 
                     switch (command)
                     {
@@ -132,6 +192,10 @@ namespace AutoRepairShop
 
                         case DayCommand.Courses:
                             OpenCourses();
+                            break;
+
+                        case DayCommand.Postpone:
+                            PostponeCar();
                             break;
 
                         case DayCommand.EndDay:
@@ -189,6 +253,190 @@ namespace AutoRepairShop
             _illustrator.ShowFinal(_cashRegister.Money, BuildShiftStatistics(), endReason.Value, _profile);
         }
 
+        private void DeliverOrders()
+        {
+            if (_deliveries.Count == 0)
+            {
+                return;
+            }
+
+            var remaining = new List<DeliveryOrder>();
+            int arrived = 0;
+
+            foreach (DeliveryOrder order in _deliveries)
+            {
+                if (order.ArrivalDay > _day)
+                {
+                    remaining.Add(order);
+
+                    continue;
+                }
+
+                Brand brand = FindBrand(order.BrandName);
+                PartTemplate template = DetailsCatalog.GetTemplate(order.Type);
+                var detail = new Detail(template, brand);
+
+                if (_warehouse.TryAdd(detail))
+                {
+                    arrived++;
+                }
+                else
+                {
+                    remaining.Add(new DeliveryOrder(order.Type, order.BrandName, _day + 1));
+                }
+            }
+
+            _deliveries.Clear();
+            _deliveries.AddRange(remaining);
+
+            if (arrived > 0)
+            {
+                _illustrator.ShowDelivery(arrived, _deliveries.Count);
+                _illustrator.Pause();
+            }
+        }
+
+        private static Brand FindBrand(string name)
+        {
+            foreach (Brand brand in DetailsCatalog.Brands)
+            {
+                if (brand.Name == name)
+                {
+                    return brand;
+                }
+            }
+
+            return DetailsCatalog.StandardBrand;
+        }
+
+        private void PostponeCar()
+        {
+            if (_postponedCar != null)
+            {
+                _illustrator.ShowPostponeDenied("На завтра уже отложена одна машина.");
+                _illustrator.Pause();
+
+                return;
+            }
+
+            if (_carsQueue.HasCars == false)
+            {
+                _illustrator.ShowNoCars();
+                _illustrator.Pause();
+
+                return;
+            }
+
+            Car car = _carsQueue.DequeueCar();
+            _postponedCar = car;
+
+            _illustrator.ShowPostponed(car);
+            _illustrator.Pause();
+        }
+
+        private void TryTuning(Car car)
+        {
+            int boxLevel = _serviceDevelopment.GetLevel(UpgradeType.TuningBox);
+
+            if (boxLevel == 0)
+            {
+                return;
+            }
+
+            var available = new List<TuningOption>();
+
+            foreach (TuningOption option in TuningCatalog.GetFor(car.Brand, car.Name))
+            {
+                if (car.HasTuning(option.Type) == false && boxLevel >= option.RequiredBoxLevel)
+                {
+                    available.Add(option);
+                }
+            }
+
+            if (available.Count == 0)
+            {
+                return;
+            }
+
+            TuningType? type = _illustrator.AskTuning(car, BuildTuningOffers(available));
+
+            if (type == null)
+            {
+                return;
+            }
+
+            TuningOption selected = null;
+
+            foreach (TuningOption option in available)
+            {
+                if (option.Type == type.Value)
+                {
+                    selected = option;
+                }
+            }
+
+            if (selected == null)
+            {
+                return;
+            }
+
+            if (_warehouse.TryTake(selected.PartType, out Detail _) == false)
+            {
+                string partName = DetailsCatalog.GetTemplate(selected.PartType).Name;
+
+                _illustrator.ShowTuningFailed("на складе нет детали: " + partName);
+                _illustrator.Pause();
+
+                return;
+            }
+
+            _cashRegister.Apply(selected.Price);
+            _totalEarned += selected.Price;
+            _dayReports.Add(new RepairReport(selected.Price, 0m));
+            car.AddTuning(selected.Type);
+
+            _illustrator.ShowTuningDone(selected);
+            _illustrator.Pause();
+        }
+
+        private List<TuningOffer> BuildTuningOffers(IReadOnlyList<TuningOption> options)
+        {
+            var offers = new List<TuningOffer>();
+
+            foreach (TuningOption option in options)
+            {
+                offers.Add(new TuningOffer(
+                    option.Type,
+                    option.Title,
+                    option.Description,
+                    option.Price,
+                    DetailsCatalog.GetTemplate(option.PartType).Name,
+                    _warehouse.GetQuantityDetail(option.PartType) > 0));
+            }
+
+            return offers;
+        }
+
+        private Season GetSeason() => (Season)(((_day - 1) / SeasonLengthDays) % 4);
+
+        private string GetSeasonText()
+        {
+            switch (GetSeason())
+            {
+                case Season.Spring:
+                    return "Сезон: весна — все переобуваются на лето";
+
+                case Season.Autumn:
+                    return "Сезон: осень — переобувка на зиму и ремонт печек";
+
+                case Season.Winter:
+                    return "Сезон: зима — печки греют, морозы бьют";
+
+                default:
+                    return "Сезон: лето — базовый сезон, кондиционеров нет";
+            }
+        }
+
         private void TakeNextCar()
         {
             if (_carsQueue.HasCars == false)
@@ -200,25 +448,255 @@ namespace AutoRepairShop
             }
 
             Car car = _carsQueue.DequeueCar();
+            _currentCar = car;
 
-            if (TryTakeRepaintOrder(car))
+            SaveGame(_day + 1);
+
+            Owner owner = FindOwner(car.OwnerId);
+
+            if (owner != null)
             {
+                _illustrator.ShowOwner(owner);
+                _illustrator.Pause();
+            }
+
+            if (TryTakeRepaintOrder(car, owner))
+            {
+                _currentCar = null;
+
                 return;
             }
+
+            TryTuning(car);
 
             RepairReport report = _illustrator.AskRepairCar(car)
                 ? RepairCar(car)
                 : _garage.RefuseRepairs();
 
-            _cashRegister.Apply(report.Total);
+            _cashRegister.Apply(report.Total * GetPayMultiplier(owner));
             _totalEarned += report.Revenue;
             _dayReports.Add(report);
 
             _illustrator.ShowRepairReport(report, _cashRegister.Money);
             _illustrator.Pause();
+
+            TryOfferDiscount(owner, report);
+
+            ApplyReaction(owner, report.Fine == 0m ? 8 : -12);
+
+            _currentCar = null;
         }
 
-        private bool TryTakeRepaintOrder(Car car)
+        private static decimal GetPayMultiplier(Owner owner) =>
+            owner == null ? 1m : owner.GetPayMultiplier();
+
+        private void TryOfferDiscount(Owner owner, RepairReport report)
+        {
+            if (owner == null || owner.Relationship >= Owner.PleasantThreshold || report.Revenue <= 0m)
+            {
+                return;
+            }
+
+            if (_illustrator.AskDiscount(owner) == false)
+            {
+                return;
+            }
+
+            decimal discount = Math.Round(report.Revenue * 0.1m, 0, MidpointRounding.AwayFromZero);
+
+            _cashRegister.Apply(-discount);
+            owner.ChangeRelationship(10);
+
+            _illustrator.ShowDiscountApplied(owner, discount);
+            _illustrator.Pause();
+        }
+
+        private Owner FindOwner(int ownerId)
+        {
+            foreach (Owner owner in _owners)
+            {
+                if (owner.Id == ownerId)
+                {
+                    return owner;
+                }
+            }
+
+            return null;
+        }
+
+        private void ApplyReaction(Owner owner, int delta)
+        {
+            if (owner == null)
+            {
+                return;
+            }
+
+            owner.ChangeRelationship(delta);
+
+            _illustrator.ShowOwnerReaction(owner, delta);
+            _illustrator.Pause();
+
+            TakeAwayAcquaintance(owner);
+        }
+
+        private void TakeAwayAcquaintance(Owner owner)
+        {
+            if (owner.Relationship >= Owner.NeutralThreshold)
+            {
+                return;
+            }
+
+            foreach (Owner candidate in _owners)
+            {
+                if (candidate.ReferrerId != owner.Id || candidate.IsAcquainted == false)
+                {
+                    continue;
+                }
+
+                candidate.Unacquaint();
+                candidate.ClearReferrer();
+
+                _illustrator.ShowAcquaintanceLost(owner, candidate);
+                _illustrator.Pause();
+
+                return;
+            }
+        }
+
+        private void AddOwnerCars()
+        {
+            var eligible = new List<Owner>();
+
+            foreach (Owner owner in _owners)
+            {
+                if (owner.IsAngry == false && owner.IsAcquainted)
+                {
+                    eligible.Add(owner);
+                }
+            }
+
+            if (eligible.Count == 0)
+            {
+                return;
+            }
+
+            int displeased = 0;
+
+            foreach (Owner owner in _owners)
+            {
+                if (owner.IsAngry == false && owner.Relationship < Owner.NeutralThreshold)
+                {
+                    displeased++;
+                }
+            }
+
+            int penalty = Math.Min(2, displeased / 5);
+            int count = 1 + _random.NextInclusive(0, GetMaxCarsPerDay()) - penalty;
+
+            if (count < 1)
+            {
+                count = 1;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                Owner owner = eligible[_random.Next(0, eligible.Count)];
+                Car car = _carFactory.CreateForModel(owner.Brand, owner.Model, GetSeason());
+
+                car.AssignOwner(owner.Id);
+
+                _carsQueue.AddCar(car);
+            }
+
+            AddFriendCars();
+        }
+
+        private void TryReferral()
+        {
+            if (_referralsToday >= 1)
+            {
+                return;
+            }
+
+            foreach (Owner friend in _owners)
+            {
+                if (friend.IsFriend == false || friend.HasReferred || friend.IsAngry)
+                {
+                    continue;
+                }
+
+                if (_random.NextChance(0.25d) == false)
+                {
+                    continue;
+                }
+
+                Owner newcomer = null;
+
+                foreach (Owner candidate in _owners)
+                {
+                    if (candidate.IsAcquainted == false && candidate.IsAngry == false)
+                    {
+                        newcomer = candidate;
+
+                        break;
+                    }
+                }
+
+                if (newcomer == null)
+                {
+                    return;
+                }
+
+                newcomer.MakeAcquainted();
+                newcomer.SetReferrer(friend.Id);
+                friend.MarkReferred();
+
+                Car car = _carFactory.CreateForModel(newcomer.Brand, newcomer.Model, GetSeason());
+
+                car.AssignOwner(newcomer.Id);
+
+                _carsQueue.AddCar(car);
+                _referralsToday++;
+                _totalReferrals++;
+
+                _illustrator.ShowReferral(friend, newcomer);
+                _illustrator.Pause();
+
+                return;
+            }
+        }
+
+        private void AddFriendCars()
+        {
+            int added = 0;
+
+            foreach (Owner owner in _owners)
+            {
+                if (added >= 2)
+                {
+                    break;
+                }
+
+                if (owner.IsFriend == false)
+                {
+                    continue;
+                }
+
+                if (_random.NextChance(0.3d) == false)
+                {
+                    continue;
+                }
+
+                Car car = _carFactory.CreateForModel(owner.Brand, owner.Model, GetSeason());
+
+                car.AssignOwner(owner.Id);
+
+                _carsQueue.AddCar(car);
+                added++;
+            }
+        }
+
+        private bool TryTakeRepaintOrder(Car car, Owner owner)
         {
             if (_serviceDevelopment.GetLevel(UpgradeType.BodyBox) == 0)
             {
@@ -277,12 +755,16 @@ namespace AutoRepairShop
                 }
 
                 _illustrator.ShowRepaintDone(GameBalance.RepaintPrice, _bodyBoxBusyUntilDay);
+
+                ApplyReaction(owner, 8);
             }
             else
             {
                 Unlock(AchievementType.Painter);
 
                 _illustrator.ShowRepaintFailed(orderedColor, usedColor.Value);
+
+                ApplyReaction(owner, -20);
             }
 
             _illustrator.Pause();
@@ -326,11 +808,28 @@ namespace AutoRepairShop
             {
                 List<Detail> brokenDetails = _garage.DiagnoseFaultyParts(car);
 
-                RepairAction action = _illustrator.AskRepairAction(car, brokenDetails, rates, access);
+                RepairAction action = _illustrator.AskRepairAction(
+                    car,
+                    brokenDetails,
+                    rates,
+                    access,
+                    car.NeedsTireChange);
 
                 if (action == RepairAction.Cancel)
                 {
                     return _garage.RefuseFurtherRepairs(revenue, car);
+                }
+
+                if (action == RepairAction.TireService)
+                {
+                    car.CompleteTireChange();
+                    revenue += GameBalance.TireChangePrice;
+                    _totalEarned += GameBalance.TireChangePrice;
+
+                    _illustrator.ShowTireChangeDone(GameBalance.TireChangePrice);
+                    _illustrator.Pause();
+
+                    continue;
                 }
 
                 if (action == RepairAction.Repair)
@@ -394,22 +893,22 @@ namespace AutoRepairShop
 
             while (isOpen)
             {
-                if (_illustrator.AskShopBrand(out CarBrand brand, out bool isMaterials) == false)
+                if (_illustrator.AskShopBrand(out CarBrand brand, out bool isMaterials, out bool isTuning) == false)
                 {
                     isOpen = false;
 
                     continue;
                 }
 
-                OpenPartsShop(brand, isMaterials);
+                OpenPartsShop(brand, isMaterials, isTuning);
             }
         }
 
-        private void OpenPartsShop(CarBrand brand, bool isMaterials)
+        private void OpenPartsShop(CarBrand brand, bool isMaterials, bool isTuning)
         {
             bool isOpen = true;
-            List<PartTemplate> templates = BuildShopTemplates(brand, isMaterials);
-            string title = GetShopTitle(brand, isMaterials);
+            List<PartTemplate> templates = BuildShopTemplates(brand, isMaterials, isTuning);
+            string title = GetShopTitle(brand, isMaterials, isTuning);
 
             while (isOpen)
             {
@@ -434,6 +933,11 @@ namespace AutoRepairShop
                 if (report.Outcome == PurchaseOutcome.Bought)
                 {
                     _dayPurchaseCosts += report.Detail.Price;
+
+                    _deliveries.Add(new DeliveryOrder(
+                        report.Detail.Type,
+                        report.Detail.BrandName,
+                        _day + 1));
                 }
 
                 _illustrator.ShowPurchase(report, _cashRegister.Money);
@@ -618,18 +1122,23 @@ namespace AutoRepairShop
                 .ToList();
         }
 
-        private List<PartTemplate> BuildShopTemplates(CarBrand brand, bool isMaterials)
+        private List<PartTemplate> BuildShopTemplates(CarBrand brand, bool isMaterials, bool isTuning)
         {
             if (isMaterials)
             {
                 return DetailsCatalog.GetByCategory(PartCategory.Material);
             }
 
+            if (isTuning)
+            {
+                return DetailsCatalog.GetByCategory(PartCategory.Tuning);
+            }
+
             var templates = new List<PartTemplate>();
 
             foreach (PartTemplate template in DetailsCatalog.GetTemplatesFor(brand))
             {
-                if (template.Category != PartCategory.Material)
+                if (template.Category != PartCategory.Material && template.Category != PartCategory.Tuning)
                 {
                     templates.Add(template);
                 }
@@ -638,8 +1147,20 @@ namespace AutoRepairShop
             return templates;
         }
 
-        private static string GetShopTitle(CarBrand brand, bool isMaterials) =>
-            isMaterials ? "материалы для покраски" : "запчасти " + CarNames.GetBrandTitle(brand);
+        private static string GetShopTitle(CarBrand brand, bool isMaterials, bool isTuning)
+        {
+            if (isMaterials)
+            {
+                return "материалы для покраски";
+            }
+
+            if (isTuning)
+            {
+                return "тюнинг-детали";
+            }
+
+            return "запчасти " + CarNames.GetBrandTitle(brand);
+        }
 
         private IReadOnlyDictionary<DetailType, int> BuildQuantities(IReadOnlyList<PartTemplate> templates)
         {
@@ -755,7 +1276,8 @@ namespace AutoRepairShop
                 _savedShift.Fines + _dayStatistics.Sum(statistics => statistics.Fines),
                 _savedShift.Rent + _dayStatistics.Sum(statistics => statistics.Rent),
                 _savedShift.PurchaseCosts + _dayStatistics.Sum(statistics => statistics.PurchaseCosts),
-                _savedShift.UpgradeCosts + _dayStatistics.Sum(statistics => statistics.UpgradeCosts));
+                _savedShift.UpgradeCosts + _dayStatistics.Sum(statistics => statistics.UpgradeCosts),
+                _savedShift.Referrals + _totalReferrals);
         }
 
         private GameEndReason? EvaluateDayEnd()
@@ -777,15 +1299,25 @@ namespace AutoRepairShop
         {
             var levels = new Dictionary<UpgradeType, int>();
             var stock = new Dictionary<DetailType, int>();
+            var ownerScores = new Dictionary<int, int>();
+            var ownerFlags = new Dictionary<int, int>();
+            var ownerReferrers = new Dictionary<int, int>();
 
             foreach (UpgradeType type in Enum.GetValues(typeof(UpgradeType)))
             {
                 levels[type] = _serviceDevelopment.GetLevel(type);
             }
 
-            foreach (DetailType type in Enum.GetValues(typeof(DetailType)))
+            foreach (PartTemplate template in DetailsCatalog.Templates)
             {
-                stock[type] = _warehouse.GetQuantityDetail(type);
+                stock[template.Type] = _warehouse.GetQuantityDetail(template.Type);
+            }
+
+            foreach (Owner owner in _owners)
+            {
+                ownerScores[owner.Id] = owner.Relationship;
+                ownerFlags[owner.Id] = (owner.HasReferred ? 1 : 0) | (owner.IsAcquainted ? 2 : 0);
+                ownerReferrers[owner.Id] = owner.ReferrerId;
             }
 
             try
@@ -800,7 +1332,14 @@ namespace AutoRepairShop
                         BuildShiftStatistics(),
                         _bodyBoxBusyUntilDay,
                         _education.Passed,
-                        _totalEarned));
+                        _totalEarned,
+                        _deliveries,
+                        _carsQueue.GetCars(),
+                        _postponedCar,
+                        ownerScores,
+                        ownerFlags,
+                        ownerReferrers,
+                        _currentCar));
             }
             catch (System.IO.IOException)
             {

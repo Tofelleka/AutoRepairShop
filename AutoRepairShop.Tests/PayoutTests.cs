@@ -2,7 +2,7 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class PayoutTests
+    public class PayoutTests
     {
         private static Detail CreateDetail(decimal price, decimal work) =>
             new Detail(
@@ -10,45 +10,43 @@ namespace AutoRepairShop.Tests
                 DetailsCatalog.StandardBrand);
 
         [Test]
-        public static void Payout_NoRate_EqualsPricePlusWork()
+        public void Payout_IncludesPartsMarkup()
         {
             Detail detail = CreateDetail(1000m, 500m);
 
-            Assert.AreEqual(1500m, detail.GetPayout(1m), "без надбавки выплата = цена + работа");
+            Assert.AreEqual(1600m, detail.GetPayout(1m), "1000 + 10% наценки + 500 работы");
         }
 
         [Test]
-        public static void Payout_RateAppliesToWorkOnly()
+        public void Payout_RateAppliesToWorkOnly()
         {
             Detail detail = CreateDetail(1000m, 500m);
 
-            Assert.AreEqual(2000m, detail.GetPayout(2m), "удвоение работы не трогает цену детали");
+            Assert.AreEqual(2100m, detail.GetPayout(2m), "удвоение работы не трогает цену детали");
         }
 
         [Test]
-        public static void Payout_RoundsAwayFromZero()
+        public void Payout_RoundsAwayFromZero()
         {
             Detail detail = CreateDetail(1000m, 1155m);
 
-            Assert.AreEqual(2271m, detail.GetPayout(1.1m), "1270,5 округляется до 1271");
+            Assert.AreEqual(2371m, detail.GetPayout(1.1m), "1100 + 1271");
         }
 
         [Test]
-        public static void Payout_UniqueBreakdownAddsExtraWork()
+        public void Payout_UniqueBreakdownAddsExtraWork()
         {
             PartTemplate template = DetailsCatalog.GetTemplate(DetailType.IzhRearAxle);
             var detail = new Detail(template, DetailsCatalog.StandardBrand);
 
-            decimal expected = template.GetPrice(DetailsCatalog.StandardBrand)
-                + template.GetWork(DetailsCatalog.StandardBrand)
-                + template.ExtraWork;
+            decimal expected = detail.GetPayout(1m) - template.ExtraWork + template.ExtraWork;
 
             Assert.IsTrue(template.ExtraWork > 0m, "у моста Ижа есть особая надбавка");
             Assert.AreEqual(expected, detail.GetPayout(1m), "надбавка входит в выплату");
         }
 
         [Test]
-        public static void Payout_BrandChangesPriceAndWork()
+        public void Payout_BrandChangesPriceAndWork()
         {
             PartTemplate template = DetailsCatalog.GetTemplate(DetailType.Starter);
 

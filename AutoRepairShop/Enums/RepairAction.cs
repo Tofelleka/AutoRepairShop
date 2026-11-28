@@ -4,6 +4,7 @@ namespace AutoRepairShop
     {
         Cancel = 0,
         Replace = 1,
-        Repair = 2
+        Repair = 2,
+        TireService = 3
     }
 }

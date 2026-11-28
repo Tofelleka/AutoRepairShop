@@ -2,10 +2,10 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class WorkRatesTests
+    public class WorkRatesTests
     {
         [Test]
-        public static void BaseRateIsOne()
+        public void BaseRateIsOne()
         {
             var rates = new WorkRates(0m, 0m, 0m);
 
@@ -14,7 +14,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void BodyBonusAppliesOnlyToBody()
+        public void BodyBonusAppliesOnlyToBody()
         {
             var rates = new WorkRates(0m, 0.1m, 0.2m);
 
@@ -24,7 +24,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void SkillAppliesEverywhere()
+        public void SkillAppliesEverywhere()
         {
             var rates = new WorkRates(0.1m, 0.1m, 0.1m);
 

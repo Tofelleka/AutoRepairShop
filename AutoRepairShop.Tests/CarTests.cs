@@ -2,26 +2,26 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class CarTests
+    public class CarTests
     {
         [Test]
-        public static void Car_AlwaysHasBrokenDetail()
+        public void Car_AlwaysHasBrokenDetail()
         {
             var factory = new CarFactory(new AlwaysHealthyRandom());
 
-            Car car = factory.Create(CarBrand.Vaz);
+            Car car = factory.Create(CarBrand.Vaz, Season.Spring);
 
             Assert.IsTrue(car.CarIsBroken(), "у машины должна быть хотя бы одна поломка");
         }
 
         [Test]
-        public static void Car_DetailsFitModel()
+        public void Car_DetailsFitModel()
         {
             var factory = new CarFactory(new AlwaysHealthyRandom());
 
             for (int i = 0; i < 20; i++)
             {
-                Car car = factory.Create(CarBrand.Vaz);
+                Car car = factory.Create(CarBrand.Vaz, Season.Spring);
 
                 foreach (Detail detail in car.GetAllDetails())
                 {
@@ -34,17 +34,17 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Car_HasAllModelDetails()
+        public void Car_HasAllModelDetails()
         {
             var factory = new CarFactory(new AlwaysHealthyRandom());
 
-            Car car = factory.Create(CarBrand.Vaz);
+            Car car = factory.Create(CarBrand.Vaz, Season.Spring);
 
             int expected = 0;
 
             foreach (PartTemplate template in DetailsCatalog.GetTemplatesFor(car.Brand, car.Name))
             {
-                if (template.Category != PartCategory.Material)
+                if (template.Category != PartCategory.Material && template.Category != PartCategory.Tuning)
                 {
                     expected++;
                 }
@@ -55,11 +55,11 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Car_DetailsHaveBrands()
+        public void Car_DetailsHaveBrands()
         {
             var factory = new CarFactory(new AlwaysHealthyRandom());
 
-            Car car = factory.Create(CarBrand.Vaz);
+            Car car = factory.Create(CarBrand.Vaz, Season.Spring);
 
             foreach (Detail detail in car.GetAllDetails())
             {
@@ -69,11 +69,11 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Izh_HasUniqueParts()
+        public void Izh_HasUniqueParts()
         {
             var factory = new CarFactory(new AlwaysHealthyRandom());
 
-            Car car = factory.Create(CarBrand.Izh);
+            Car car = factory.Create(CarBrand.Izh, Season.Spring);
 
             Assert.IsTrue(car.TryGetDetail(DetailType.IzhCarburetor, out Detail _), "у Ижа есть карбюратор");
             Assert.IsTrue(car.TryGetDetail(DetailType.IzhRearAxle, out Detail _), "у Ижа есть задний мост");
@@ -82,11 +82,11 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Volga_HasUniqueParts()
+        public void Volga_HasUniqueParts()
         {
             var factory = new CarFactory(new AlwaysHealthyRandom());
 
-            Car car = factory.Create(CarBrand.Volga);
+            Car car = factory.Create(CarBrand.Volga, Season.Spring);
 
             Assert.IsTrue(car.TryGetDetail(DetailType.VolgaPowerSteering, out Detail _), "у Волги есть ГУР");
             Assert.IsTrue(car.TryGetDetail(DetailType.VolgaRearSprings, out Detail _), "у Волги есть рессоры");
@@ -95,7 +95,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void ModelSpecificParts_FitOnlyTheirModels()
+        public void ModelSpecificParts_FitOnlyTheirModels()
         {
             Assert.IsTrue(HasTemplate(CarBrand.Vaz, "ВАЗ - 2108", DetailType.Vaz2108Clutch),
                 "сцепление Самары подходит 2108");
@@ -110,12 +110,12 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void CarsQueue_UsesOnlyAllowedBrands()
+        public void CarsQueue_UsesOnlyAllowedBrands()
         {
             var random = new SeededRandom(42);
             var queue = new CarsQueue(new CarFactory(random), random);
 
-            queue.AddCars(4, new[] { CarBrand.Vaz });
+            queue.AddCars(4, new[] { CarBrand.Vaz }, Season.Spring);
 
             while (queue.HasCars)
             {

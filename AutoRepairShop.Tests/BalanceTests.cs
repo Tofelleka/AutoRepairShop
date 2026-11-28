@@ -2,10 +2,10 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class BalanceTests
+    public class BalanceTests
     {
         [Test]
-        public static void Simulator_ReachesGoal()
+        public void Simulator_ReachesGoal()
         {
             var simulator = new BalanceSimulator(2026);
 
@@ -15,7 +15,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Simulator_GoalTakesAboutTwoHundredDays()
+        public void Simulator_GoalTakesAboutTwoHundredDays()
         {
             var simulator = new BalanceSimulator(2026);
 
@@ -26,7 +26,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Simulator_DoesNotLoseEverything()
+        public void Simulator_DoesNotLoseEverything()
         {
             var simulator = new BalanceSimulator(2026);
 
@@ -36,7 +36,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Simulator_UnlocksIzhCourse()
+        public void Simulator_UnlocksIzhCourse()
         {
             var simulator = new BalanceSimulator(2026);
 
@@ -46,7 +46,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void Simulator_UnlocksVolgaCourse()
+        public void Simulator_UnlocksVolgaCourse()
         {
             var simulator = new BalanceSimulator(2026);
 
@@ -56,7 +56,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void CasualBot_StillReachesGoalInTime()
+        public void CasualBot_StillReachesGoalInTime()
         {
             var simulator = new BalanceSimulator(2026, 0.3d);
 

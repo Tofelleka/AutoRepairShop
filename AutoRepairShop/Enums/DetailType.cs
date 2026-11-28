@@ -48,6 +48,30 @@ namespace AutoRepairShop
         Vaz2108Clutch = 37,
         VazClassicIgnition = 38,
         Izh2715BodyPanel = 39,
-        Volga3110Injector = 40
+        Volga3110Injector = 40,
+
+        Heater = 41,
+        Tires = 42,
+
+        IzhHood = 43,
+        IzhFender = 44,
+        IzhDoor = 45,
+        IzhBumper = 46,
+        IzhTrunk = 47,
+        IzhHeadlight = 48,
+        VolgaHood = 49,
+        VolgaFender = 50,
+        VolgaDoor = 51,
+        VolgaBumper = 52,
+        VolgaTrunk = 53,
+        VolgaHeadlight = 54,
+
+        TuningChip = 55,
+        TuningNoise = 56,
+        TuningCamshaft = 57,
+        TuningBrakes = 58,
+        TuningIntake = 59,
+        TuningExhaust = 60,
+        TuningSuspension = 61
     }
 }

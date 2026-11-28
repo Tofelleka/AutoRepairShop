@@ -23,8 +23,9 @@ namespace AutoRepairShop.Tests
 
     internal class BalanceSimulator
     {
+        private const int SeasonLengthDays = 15;
         private const decimal Reserve = 50_000m;
-        private const decimal RefuseFine = 1_000m;
+        private const decimal RefuseFine = 2_000m;
         private const decimal DailyRent = GameBalance.DailyRent;
         private const decimal GoalMoney = GameBalance.GoalMoney;
 
@@ -37,10 +38,13 @@ namespace AutoRepairShop.Tests
         private readonly PartsShop _shop;
         private readonly UpgradeShop _upgradeShop;
         private readonly Education _education;
+        private readonly List<DeliveryOrder> _pending = new List<DeliveryOrder>();
+        private readonly HashSet<DetailType> _wanted = new HashSet<DetailType>();
         private readonly double _sloppiness;
 
         private int _bodyBoxBusyDay;
         private decimal _totalEarned;
+        private int _day;
 
         public BalanceSimulator(int seed, double sloppiness = 0d)
         {
@@ -54,7 +58,7 @@ namespace AutoRepairShop.Tests
             _cashRegister = new CashRegister();
             _development = new ServiceDevelopment();
             _garage = new Garage(_warehouse, _random);
-            _shop = new PartsShop(_warehouse, _cashRegister);
+            _shop = new PartsShop(_cashRegister);
             _upgradeShop = new UpgradeShop(_cashRegister, _development);
             _education = new Education();
             _sloppiness = sloppiness;
@@ -72,6 +76,11 @@ namespace AutoRepairShop.Tests
         {
             for (int day = 1; day <= maxDays; day++)
             {
+                _day = day;
+
+                Deliver(day);
+                OrderWanted();
+
                 int cars = 1 + _random.NextInclusive(0, GetMaxCarsPerDay());
 
                 for (int i = 0; i < cars; i++)
@@ -100,9 +109,67 @@ namespace AutoRepairShop.Tests
             return -1;
         }
 
+        private void OrderWanted()
+        {
+            foreach (DetailType type in _wanted)
+            {
+                if (_warehouse.GetQuantityDetail(type) == 0)
+                {
+                    EnsureStock(type);
+                }
+            }
+        }
+
+        private void Deliver(int day)
+        {
+            if (_pending.Count == 0)
+            {
+                return;
+            }
+
+            var remaining = new List<DeliveryOrder>();
+
+            foreach (DeliveryOrder order in _pending)
+            {
+                if (order.ArrivalDay > day)
+                {
+                    remaining.Add(order);
+
+                    continue;
+                }
+
+                PartTemplate template = DetailsCatalog.GetTemplate(order.Type);
+                var detail = new Detail(template, FindBrand(order.BrandName));
+
+                if (_warehouse.TryAdd(detail) == false)
+                {
+                    remaining.Add(new DeliveryOrder(order.Type, order.BrandName, day + 1));
+                }
+            }
+
+            _pending.Clear();
+            _pending.AddRange(remaining);
+        }
+
+        private static Brand FindBrand(string name)
+        {
+            foreach (Brand brand in DetailsCatalog.Brands)
+            {
+                if (brand.Name == name)
+                {
+                    return brand;
+                }
+            }
+
+            return DetailsCatalog.StandardBrand;
+        }
+
         private int GetMaxCarsPerDay() =>
             CarsQueue.DefaultMaxCarsPerDay + UpgradeCatalog.Get(UpgradeType.Marketing).EffectPerLevel
                 * _development.GetLevel(UpgradeType.Marketing);
+
+        private static Season GetSeason(int day) =>
+            (Season)(((day - 1) / SeasonLengthDays) % 4);
 
         private void HandleCar(int day)
         {
@@ -120,7 +187,14 @@ namespace AutoRepairShop.Tests
                 return;
             }
 
-            Car car = _carFactory.Create(PickBrand());
+            Car car = _carFactory.Create(PickBrand(), GetSeason(day));
+
+            if (car.NeedsTireChange && _random.NextChance(1d - _sloppiness * 0.2d))
+            {
+                car.CompleteTireChange();
+                _cashRegister.Apply(GameBalance.TireChangePrice);
+                _totalEarned += GameBalance.TireChangePrice;
+            }
 
             foreach (Detail broken in car.GetAllDetails().Where(detail => detail.IsBroken).ToList())
             {
@@ -138,6 +212,8 @@ namespace AutoRepairShop.Tests
 
                 if (_warehouse.GetQuantityDetail(broken.Type) == 0)
                 {
+                    _wanted.Add(broken.Type);
+
                     continue;
                 }
 
@@ -259,12 +335,23 @@ namespace AutoRepairShop.Tests
                 return;
             }
 
+            foreach (DeliveryOrder order in _pending)
+            {
+                if (order.Type == type)
+                {
+                    return;
+                }
+            }
+
             PartTemplate template = DetailsCatalog.GetTemplate(type);
             decimal price = template.GetPrice(DetailsCatalog.StandardBrand);
 
             if (_cashRegister.CanAfford(price))
             {
-                _shop.Buy(type, DetailsCatalog.StandardBrand);
+                if (_shop.Buy(type, DetailsCatalog.StandardBrand).Outcome == PurchaseOutcome.Bought)
+                {
+                    _pending.Add(new DeliveryOrder(type, DetailsCatalog.StandardBrand.Name, _day + 1));
+                }
             }
         }
 

@@ -2,10 +2,10 @@ using AutoRepairShop;
 
 namespace AutoRepairShop.Tests
 {
-    internal static class WarehouseTests
+    public class WarehouseTests
     {
         [Test]
-        public static void TryTake_EmptyWarehouse_ReturnsFalse()
+        public void TryTake_EmptyWarehouse_ReturnsFalse()
         {
             Warehouse warehouse = TestData.CreateEmptyWarehouse();
 
@@ -16,7 +16,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void TryAdd_OverCapacity_ReturnsFalse()
+        public void TryAdd_OverCapacity_ReturnsFalse()
         {
             var factory = new PartsFactory();
             Warehouse warehouse = TestData.CreateWarehouse();
@@ -34,7 +34,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void IncreaseCapacity_Increases()
+        public void IncreaseCapacity_Increases()
         {
             Warehouse warehouse = TestData.CreateWarehouse();
             int before = warehouse.Capacity;
@@ -45,7 +45,7 @@ namespace AutoRepairShop.Tests
         }
 
         [Test]
-        public static void GetQuantity_UnknownType_Throws()
+        public void GetQuantity_UnknownType_Throws()
         {
             Warehouse warehouse = TestData.CreateWarehouse();
 

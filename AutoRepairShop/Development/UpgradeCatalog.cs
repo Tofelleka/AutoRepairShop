@@ -37,7 +37,9 @@ namespace AutoRepairShop
                 new UpgradeInfo(UpgradeType.BodyBox, "Кузовной бокс", "+10% к кузовным работам", Levels, 10,
                     new[] { 400_000m, 650_000m, 1_000_000m }),
                 new UpgradeInfo(UpgradeType.ElectricBox, "Бокс электрика", "+10% к электрике", Levels, 10,
-                    new[] { 350_000m, 550_000m, 850_000m })
+                    new[] { 350_000m, 550_000m, 850_000m }),
+                new UpgradeInfo(UpgradeType.TuningBox, "Тюнинг-бокс", "уровень тюнинга", Levels, 1,
+                    new[] { 300_000m, 500_000m, 800_000m })
             };
         }
     }

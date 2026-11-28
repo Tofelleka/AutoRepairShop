@@ -6,8 +6,8 @@ namespace AutoRepairShop
 {
     internal class Garage
     {
-        private const decimal FineForCar = 1000m;
-        private const decimal FineForDetail = 100m;
+        private const decimal FineForCar = 2_000m;
+        private const decimal FineForDetail = 300m;
         private const double CheapFluidRiskChance = 0.35d;
 
         private readonly Warehouse _warehouse;
