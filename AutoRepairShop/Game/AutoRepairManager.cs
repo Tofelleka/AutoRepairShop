@@ -75,7 +75,7 @@ namespace AutoRepairShop
                     }
                 }
 
-                _illustrator.ShowDayStatistics(BuildStatistics());
+                _illustrator.ShowDayStatistics(BuildDayStatistics());
                 _illustrator.Pause();
 
                 isWork = _illustrator.AskNextDay(day, _cashRegister.Money);
