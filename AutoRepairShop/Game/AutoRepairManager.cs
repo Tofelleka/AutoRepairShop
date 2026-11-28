@@ -6,6 +6,8 @@ namespace AutoRepairShop
 {
     internal class AutoRepairManager
     {
+        private const decimal DailyRent = 1500m;
+
         private readonly Illustrator _illustrator;
         private readonly PartsFactory _partsFactory;
         private readonly PartsShop _partsShop;
@@ -15,6 +17,8 @@ namespace AutoRepairShop
         private readonly CashRegister _cashRegister;
 
         private readonly List<RepairReport> _dayReports = new List<RepairReport>();
+
+        private decimal _dayPurchaseCosts;
 
         public AutoRepairManager(Illustrator illustrator)
         {
@@ -50,6 +54,7 @@ namespace AutoRepairShop
             while (isWork)
             {
                 _dayReports.Clear();
+                _dayPurchaseCosts = 0m;
 
                 _carsQueue.AddCars();
 
@@ -74,6 +79,8 @@ namespace AutoRepairShop
                             break;
                     }
                 }
+
+                _cashRegister.Apply(-DailyRent);
 
                 _illustrator.ShowDayStatistics(BuildDayStatistics());
                 _illustrator.Pause();
@@ -159,6 +166,11 @@ namespace AutoRepairShop
 
                 var report = _partsShop.Buy(type.Value);
 
+                if (report.Outcome == PurchaseOutcome.Bought)
+                {
+                    _dayPurchaseCosts += report.Detail.Price;
+                }
+
                 _illustrator.ShowPurchase(report, _cashRegister.Money);
                 _illustrator.Pause();
             }
@@ -179,7 +191,7 @@ namespace AutoRepairShop
             decimal fines = _dayReports.Sum(report => report.Fine);
             decimal revenue = _dayReports.Sum(report => report.Revenue);
 
-            return new DayStatistics(cars, refused, repaired, fines, revenue);
+            return new DayStatistics(cars, refused, repaired, revenue, fines, DailyRent, _dayPurchaseCosts);
         }
     }
 }

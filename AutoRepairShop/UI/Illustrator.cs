@@ -336,7 +336,13 @@ namespace AutoRepairShop
             Row(TwoColumns("Выручка:", Money(statistics.Revenue)), ConsoleColor.Gray);
             Row(TwoColumns("Штрафы:", Money(statistics.Fines)),
                 statistics.Fines > 0m ? ConsoleColor.Red : ConsoleColor.DarkGray);
-            Row(TwoColumns("Итог:", Money(statistics.Profit)),
+            Row(TwoColumns("Чистая выручка:", Money(statistics.NetRevenue)),
+                statistics.NetRevenue >= 0m ? ConsoleColor.White : ConsoleColor.Red);
+            Middle();
+            Row(TwoColumns("Аренда:", Money(statistics.Rent)), ConsoleColor.Red);
+            Row(TwoColumns("Закупки:", Money(statistics.PurchaseCosts)),
+                statistics.PurchaseCosts > 0m ? ConsoleColor.Red : ConsoleColor.DarkGray);
+            Row(TwoColumns("Прибыль:", Money(statistics.Profit)),
                 statistics.Profit >= 0m ? ConsoleColor.Green : ConsoleColor.Red);
             Bottom();
         }
